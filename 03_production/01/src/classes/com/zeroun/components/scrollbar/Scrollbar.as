@@ -25,6 +25,9 @@
 		public static const OBJECT_TYPE		:String = "object";
 		public static const ARRAY_TYPE		:String = "array";
 		
+		public static const MAX				:String = "max";
+		public static const MIN				:String = "min";
+		
 		
 		/************************************************************
 		 * Variables
@@ -154,6 +157,48 @@
 					break;
 			}
 			_updateCursorPosition();
+		}
+		
+		public function get maxScrollValue():int
+		{
+			switch(_scrollType)
+			{
+				case TEXT_TYPE:
+					return (_target as TextField).maxScrollV;
+					break;
+				case OBJECT_TYPE:
+					return _maxTargetPosition;
+					break;
+				case ARRAY_TYPE:
+					// TODO:
+					traceDebug ("TODO");
+					break;
+				default:
+					traceDebug ("ERROR");
+					break;
+			}
+			return 0;
+		}
+		
+		public function get minScrollValue():int
+		{
+			switch(_scrollType)
+			{
+				case TEXT_TYPE:
+					return 1;
+					break;
+				case OBJECT_TYPE:
+					return _minTargetPosition;
+					break;
+				case ARRAY_TYPE:
+					// TODO:
+					traceDebug ("TODO");
+					break;
+				default:
+					traceDebug ("ERROR");
+					break;
+			}
+			return 0;
 		}
 		
 		public function get alwaysVisible():Boolean
