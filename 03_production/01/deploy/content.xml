@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+	
+	In <pages>, the id attribute represents the url of the current page after the # (ex: http://www.website.com/#/portfolio/).
+	Please follow these rules when adding of modifying the ids:
+	- id must not be null
+	- id must start and ends with '/'
+	- id must be in lower case, no special caracters and no spaces
+	- id must use '/' as a separator for subpages
+	- the id "/" is reserved for the home page
+	
+	@show_in_menu:   1 (true) or 0 (false) if the page's label should appear in the main menu
+	@linkable:       1 (true) or 0 (false) if the page is deep-linked, i.e. SWFAddress value is changed when the page is visible
+	@type:           "popup" or "page"
+	
+	By default the first page is the default page when you enter the site without any address after the #.
+	The home page's id can be either "/" or something like "/home/", in which case the address "#" will silently redirect 
+	to "#/home/" (it won't update the browser's address bar).
+	
+-->
+<content>
+	<pages>
+		<!-- home -->
+		<page id="/" show_in_menu="1" linkable="1" type="page">
+			<label><![CDATA[Home / Accueil]]></label>
+			<title><![CDATA[Title / Titre]]></title>
+			<description><![CDATA[Description]]></description>
+		</page>
+		
+		<!-- portfolio -->
+		<page id="/portfolio/" show_in_menu="1" linkable="1" type="page">
+			<label>
+				<en><![CDATA[Our work]]></en>
+				<fr><![CDATA[Notre travail]]></fr>
+			</label>
+			<title>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</title>
+			<description>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</description>
+		</page>
+		
+		<!-- portfolio / client 1 -->
+		<page id="/portfolio/1/" show_in_menu="1" linkable="1" type="popup">
+			<label><![CDATA[Client 1 (popup)]]></label>
+			<title><![CDATA[]]></title>
+			<description><![CDATA[]]></description>
+		</page>
+			
+		<!-- portfolio / client 2 -->
+		<page id="/portfolio/2/" show_in_menu="1" linkable="1" type="page">
+			<label>
+				<en><![CDATA[Client 2 en]]></en>
+				<fr><![CDATA[Client 2 fr]]></fr>
+			</label>
+			<title>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</title>
+			<description>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</description>
+		</page>
+		
+		<!-- contact -->
+		<page id="/contact/" show_in_menu="1" linkable="1" type="page">
+			<label>
+				<en><![CDATA[Contact us]]></en>
+				<fr><![CDATA[Contactez nous]]></fr>
+			</label>
+			<title>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</title>
+			<description>
+				<en><![CDATA[]]></en>
+				<fr><![CDATA[]]></fr>
+			</description>
+		</page>
+			
+		<!-- contact / join us -->
+		<page id="/contact/join/" show_in_menu="1" linkable="1" type="page">
+			<label><![CDATA[Rejoignez nous]]></label>
+			<title><![CDATA[]]></title>
+			<description><![CDATA[]]></description>
+		</page>
+		
+	</pages>
+	
+	<strings>
+		<!-- footer -->
+		<string id="footer.copyright">
+			<en><![CDATA[This is an example]]></en>
+			<fr><![CDATA[Ceci est un exemple]]></fr>
+		</string>
+		
+		<string id="footer.label"><![CDATA[footer]]></string>
+	</strings>
+</content>

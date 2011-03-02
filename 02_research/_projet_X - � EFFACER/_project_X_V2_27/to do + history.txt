@@ -1,0 +1,44 @@
+-------------------------
+TO DO LIST
+-------------------------
+
+- loader: throw error when getXML or getAsset return nothing (parameter p_path is not a key in _xmlFiles or _assetsFiles)
+- loader: throw error in _onIOError, so that the Flash Debug Player displays 'URL not found' when not in Flash IDE
+- menu contextuel
+- TextStyles: mettre les fontes dans la librairie avec un nom de classe et utiliser (new MyFont()).fontName au lieu de hardcoder les noms des fontes.
+
+
+-------------------------
+VERSION HISTORY
+-------------------------
+v2.09 (2009/04/21)
+- added possibility to extend VideoPlayer class
+- bug fixed on the dropdown
+
+v2.08 (2009/04/13)
+- added buffering animation on VideoPlayer
+- added big play button
+
+v2.07 (2009/04/08)
+- added new playlist on VideoPlayer
+
+v2.06 (2009/04/01)
+- added possibility to scroll with the mouse wheel for scroll of type object
+- added screenClickable property on VideoPlayer
+- fixed bug when progressbar is not here
+
+v2.05 (Mar 2009)
+- added LoaderAccessor.getDownloadSpeed()
+
+v2.01 (Feb 2009)
+- components video Player example
+
+v2.0 (Feb 2009)
+- first integration of SWFAddress (first level of navigation only)
+- components video Player
+- rewriting dropdown and scrollbar components
+
+v1.x (Apr 2008 to Jan 2009)
+- set up the movie clip structure where loader.swf loads main.swf and handles the progress bar
+- set up the folder structure
+- added loader.animation.* to make it easier to customize the progress bar

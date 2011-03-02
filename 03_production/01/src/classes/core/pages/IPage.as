@@ -1,0 +1,1 @@
+﻿package core.pages{	public interface IPage	{		function reveal():void;		function hide():void;		function reload():void;	}	}

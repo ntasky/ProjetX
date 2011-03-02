@@ -1,0 +1,1 @@
+﻿package core.pages{	public interface IPageable	{		function reveal(... args):void;		function hide(... args):void;		function resize(... args):void;	}	}
