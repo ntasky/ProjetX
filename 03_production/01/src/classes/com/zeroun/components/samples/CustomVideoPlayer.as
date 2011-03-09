@@ -109,8 +109,6 @@
 			
 			_videoPlayer.addEventListener(VideoPlayerEvent.VIDEO_COMPLETE, _onVideoComplete);
             _videoPlayer.addEventListener(VideoPlayerEvent.VIDEO_STARTED, _onVideoStart);
-			_videoPlayer.addEventListener(VideoPlayerEvent.VIDEO_COMPLETE, _onVideoComplete);
-            _videoPlayer.addEventListener(VideoPlayerEvent.VIDEO_STARTED, _onVideoStart);
 			
 			_videoPlayer.initialize();
 		}

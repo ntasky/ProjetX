@@ -106,7 +106,7 @@ package loader.loadinganimation
 			{
 				visible = false;
 				removeEventListener(Event.ENTER_FRAME, _hideProcess);
-				if (parent.contains(this));
+				if (parent.contains(this))
 				{
 					parent.removeChild(this);
 				}

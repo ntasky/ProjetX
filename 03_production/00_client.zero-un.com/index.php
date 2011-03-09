@@ -56,7 +56,8 @@ function formatDescription($version, $folder_name_without_dateandversion)
 	$label = str_replace("_", " ", $folder_name_without_dateandversion);
 	if ($version != "")
 	{
-		return utf8_encode($label . " (" . $version . ")");
+		//return utf8_encode($label . " (" . $version . ")");
+		return utf8_encode($label);
 	}
 	else
 	{

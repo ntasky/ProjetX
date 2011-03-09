@@ -424,10 +424,7 @@
 			// :NOTE: the menu MUST be updated from this function and nowhere else
 			if (__linkablePage)
 			{
-				if (Main.pagesMenu != null)
-				{
-					Main.pagesMenu.select(pageId);
-				}
+				Main.pagesMenu.select(pageId);
 			}
 		}
 		
