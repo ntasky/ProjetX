@@ -172,7 +172,7 @@ package com.zeroun.components.videoplayer
 				{
 					if (__imagePath != null) 
 					{
-						_screenClickable = true;
+						//_screenClickable = true;
 						_autoStart = false;
 					}
 					initialize(__videoPath, __imagePath);
@@ -791,6 +791,12 @@ package com.zeroun.components.videoplayer
 		 * Public methods
 		 ************************************************************/
 		
+		// :NOTE: when the player is already on the stage sometimes its parent is not. so we have to force to wait for the frame to be constructed
+		public function forceInitialization():void
+		{
+			addEventListener("frameConstructed", _onInitializable);
+		}
+		 
 		// :NOTES: path can either be a String or a Array
 		public function initialize(__videoPaths:* = undefined, __imagePaths:* = undefined):void
 		{

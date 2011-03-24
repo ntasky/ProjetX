@@ -1353,6 +1353,18 @@ package com.zeroun.components.videoplayer
 					_cuePointsByName = new Array();
 					for (var i:int = 0 ; i < _videoMetaData["cuePoints"].length; i++) _cuePointsByName[_videoMetaData["cuePoints"][i].name] = _videoMetaData["cuePoints"][i].time;
 				}
+				
+				// :KLUDGE: if size metadata are missing the video won't be visible (width or height to 0)
+				if (_videoMetaData["width"] == undefined)
+				{
+					_videoMetaData["width"] = _playerNativeWidth;
+				}
+				
+				if (_videoMetaData["height"] == undefined)
+				{
+					_videoMetaData["height"] = _playerNativeHeight;
+				}
+				
 				_metaDataReceived = true;
 				_netStream.client = _netStreamClient;
 			//	_netStream.client = _netStreamClientEmpty;
