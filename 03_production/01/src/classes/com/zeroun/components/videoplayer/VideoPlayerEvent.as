@@ -31,8 +31,6 @@ package com.zeroun.components.videoplayer
 		public static const EXIT_FULLSCREEN			:String = "exit_fullscreen";
 		public static const ON_METADATA_RECEIVED	:String = "on_metadata_received";
 		
-		public static const VIDEO_REALLY_STARTED	:String = "video_really_started";
-		
 		
 		/************************************************************
 		 * Variables

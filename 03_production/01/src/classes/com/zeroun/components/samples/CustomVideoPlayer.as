@@ -50,6 +50,7 @@
 			//_videoPlayerOptions.useControls = false;
 			_videoPlayerOptions.videoPath = "sample1.flv";
 			_videoPlayerOptions.imagePath = "sample1.jpg";
+			_videoPlayerOptions.autoStart = false;
 			//_videoPlayerOptions.videoPath = ["sample1.flv", "sample2.flv", "sample3.flv"];
 			
 			//_videoPlayer = new VideoPlayer("sample2.flv");
@@ -134,7 +135,7 @@
 		
 		private function _onMouseDownBt4(__event:MouseEvent):void
 		{
-			_videoPlayer.setPlaylist("http://www.zeroun.com/video/reel2008.flv");
+			_videoPlayer.setPlaylist("http://www.zero-un.com/video/reel2008.flv");
 			_videoPlayer.play();
 		}
 		

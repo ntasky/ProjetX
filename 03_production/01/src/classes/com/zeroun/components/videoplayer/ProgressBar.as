@@ -136,11 +136,22 @@
 				_cursor.x = cursorPosition;
 			}
 			
-			var percentLoaded:Number = _videoPlayer.netStream.bytesTotal > 1000 ? (_videoPlayer.netStream.bytesLoaded / _videoPlayer.netStream.bytesTotal) : 0;
+			if (_videoPlayer.streamingMode)
+			{
+				var loadedWidth:Number = _videoPlayer.netStream.bufferLength * _background.width / _videoPlayer.videoDuration + _played.width - _loaded.x;
 			
-			if (percentLoaded == 1) dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_LOADED));
+				if (loadedWidth == _background.width-_loaded.x) dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_LOADED));
+				
+				_updateVisualElements(loadedWidth);
+			}
+			else
+			{
+				var percentLoaded:Number = _videoPlayer.netStream.bytesTotal > 1000 ? (_videoPlayer.netStream.bytesLoaded / _videoPlayer.netStream.bytesTotal) : 0;
 			
-			_updateVisualElements(Numbers.getRelative(0, _background.width, 0, 1, percentLoaded));
+				if (percentLoaded == 1) dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_LOADED));
+			
+				_updateVisualElements(Numbers.getRelative(0, _background.width, 0, 1, percentLoaded));
+			}
 		}
 		
 		public function reset(__showCursor:Boolean = true):void
@@ -179,7 +190,7 @@
 		protected function _updateVisualElements(__loadedWidth:Number = 0):void
 		{
 			_loaded.width = __loadedWidth;
-			_hitArea.width = _loaded.width;
+			_hitArea.width = _videoPlayer.streamingMode ? _background.width : _loaded.width;
 			_toBeLoaded.width = _background.width - _loaded.width;
 			_toBeLoaded.x = _loaded.width;
 			_played.width = _cursor.x;
@@ -194,7 +205,8 @@
 		{
 			_cursor.x = __event.target.mouseX * __event.target.scaleX;
 			_updateTargetPosition(null);
-			_startDragging();
+			// :NOTE: disable dragging was causing problems in streaming mode
+			//_startDragging();
 		}
 		
 		protected function _startDragging():void

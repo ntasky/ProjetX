@@ -1,11 +1,15 @@
 ﻿package com.zeroun.components.videoplayer
 {
+	// flashes classes
 	import flash.display.*;
 	import flash.events.*;
 	import flash.text.*;
 	
-	import com.zeroun.utils.Numbers;
+	// third-party classes
+	//...
 	
+	// project classes
+	import com.zeroun.utils.Numbers;
 	
 	
 	public class Controls extends Sprite
@@ -43,9 +47,148 @@
 		
 		
 		/************************************************************
-		 * Public methods
+		 * Getter & Setter methods
 		 ************************************************************/
 		
+		public function get progressBar():ProgressBar
+		{
+			return _progressBar;
+		}
+		
+		public function set loopPlaylist(__flag:Boolean):void
+		{
+			if (_containsInstance("mcLoop"))
+			{
+				if (__flag)
+				{
+					this["mcLoop"].mcLoopOff.visible = false;
+					this["mcLoop"].mcLoopOn.visible = true;
+				}
+				else
+				{
+					this["mcLoop"].mcLoopOff.visible = true;
+					this["mcLoop"].mcLoopOn.visible = false;
+				}
+			}
+		}
+		
+		public function set autoNext(__flag:Boolean):void
+		{
+			if (_containsInstance("mcAutoNext"))
+			{
+				if (__flag)
+				{
+					this["mcAutoNext"].mcAutoNextOff.visible = false;
+					this["mcAutoNext"].mcAutoNextOn.visible = true;
+				}
+				else
+				{
+					this["mcAutoNext"].mcAutoNextOff.visible = true;
+					this["mcAutoNext"].mcAutoNextOn.visible = false;
+				}
+			}
+		}
+		
+		public function set fullScreen(__flag:Boolean):void
+		{
+			if (_containsInstance("mcFullScreen"))
+			{
+				if (__flag)
+				{
+					this["mcFullScreen"].mcFullScreenOff.visible = false;
+					this["mcFullScreen"].mcFullScreenOn.visible = true;
+				}
+				else
+				{
+					this["mcFullScreen"].mcFullScreenOff.visible = true;
+					this["mcFullScreen"].mcFullScreenOn.visible = false;
+				}
+			}
+		}
+		
+		public function set status(__value:String):void
+		{
+			if (_containsInstance("tfStatus"))
+			{
+				this["tfStatus"].text = __value;
+			}
+			switch(__value)
+			{
+				case VideoPlayer.STATUS_LOADING:
+					break;
+				case VideoPlayer.STATUS_BUFFERING:
+					_canPlayPause = false;
+					break;
+				case VideoPlayer.STATUS_PLAYING:
+					_canPlayPause = true;
+					break;
+				case VideoPlayer.STATUS_PAUSED:
+					_canPlayPause = true;
+					break;
+			}
+		}
+		
+		public function set title(__value:String):void
+		{
+			if (_containsInstance("tfTitle"))
+			{
+				this["tfTitle"].text = __value;
+			}
+		}
+		
+		public function set volume(__value:Number):void
+		{
+			if (_containsInstance("mcVolume"))
+			{
+				this["mcVolume"].mcVolumeBar.width = Numbers.getRelative(0, this["mcVolume"].mcHitArea.width, 0, 1, __value);
+			}
+		}
+		
+		public function set zoom(__value:String):void
+		{
+			if (_containsInstance("mcZoom"))
+			{
+				if (_currentSelectedZoom != null)
+				{
+					_currentSelectedZoom.gotoAndStop("_up");
+					_currentSelectedZoom.buttonMode = true;
+				}
+				switch(__value)
+				{
+					case ZOOM_FIT:
+						_currentSelectedZoom = this["mcZoom"].mcZoomFit;
+						break;
+					case ZOOM_X05:
+						_currentSelectedZoom = this["mcZoom"].mcZoomX05;
+						break;
+					case NO_RESIZE:
+						_currentSelectedZoom = this["mcZoom"].mcZoomNoResize;
+						break;
+					case ZOOM_X2:
+						_currentSelectedZoom = this["mcZoom"].mcZoomX2;
+						break;
+					case ZOOM_X3:
+						_currentSelectedZoom = this["mcZoom"].mcZoomX3;
+						break;
+					case ZOOM_X4:
+						_currentSelectedZoom = this["mcZoom"].mcZoomX4;
+						break;
+					default:
+						break;
+				}
+				if (_currentSelectedZoom != null)
+				{
+					_currentSelectedZoom.gotoAndStop("_down");
+					_currentSelectedZoom.buttonMode = false;
+				}
+			}
+		}
+		
+		
+		/************************************************************
+		 * Public methods
+		 ************************************************************/
+		 
 		public function initialize(__videoPlayer:VideoPlayer):void
 		{
 			_videoPlayer = __videoPlayer;
@@ -292,129 +435,9 @@
 			fullScreen = _videoPlayer.fullScreen;
 		}
 		
-		public function get progressBar():ProgressBar
-		{
-			return _progressBar;
-		}
-		
 		public function hasProgressBar():Boolean
 		{
 			return (_progressBar != null);
-		}
-		
-		public function set loopPlaylist(__flag:Boolean):void
-		{
-			if (_containsInstance("mcLoop"))
-			{
-				if (__flag)
-				{
-					this["mcLoop"].mcLoopOff.visible = false;
-					this["mcLoop"].mcLoopOn.visible = true;
-				}
-				else
-				{
-					this["mcLoop"].mcLoopOff.visible = true;
-					this["mcLoop"].mcLoopOn.visible = false;
-				}
-			}
-		}
-		
-		public function set autoNext(__flag:Boolean):void
-		{
-			if (_containsInstance("mcAutoNext"))
-			{
-				if (__flag)
-				{
-					this["mcAutoNext"].mcAutoNextOff.visible = false;
-					this["mcAutoNext"].mcAutoNextOn.visible = true;
-				}
-				else
-				{
-					this["mcAutoNext"].mcAutoNextOff.visible = true;
-					this["mcAutoNext"].mcAutoNextOn.visible = false;
-				}
-			}
-		}
-		
-		public function set fullScreen(__flag:Boolean):void
-		{
-			if (_containsInstance("mcFullScreen"))
-			{
-				if (__flag)
-				{
-					this["mcFullScreen"].mcFullScreenOff.visible = false;
-					this["mcFullScreen"].mcFullScreenOn.visible = true;
-				}
-				else
-				{
-					this["mcFullScreen"].mcFullScreenOff.visible = true;
-					this["mcFullScreen"].mcFullScreenOn.visible = false;
-				}
-			}
-		}
-		
-		public function set status(__value:String):void
-		{
-			if (_containsInstance("tfStatus"))
-			{
-				this["tfStatus"].text = __value;
-			}
-		}
-		
-		public function set title(__value:String):void
-		{
-			if (_containsInstance("tfTitle"))
-			{
-				this["tfTitle"].text = __value;
-			}
-		}
-		
-		public function set volume(__value:Number):void
-		{
-			if (_containsInstance("mcVolume"))
-			{
-				this["mcVolume"].mcVolumeBar.width = Numbers.getRelative(0, this["mcVolume"].mcHitArea.width, 0, 1, __value);
-			}
-		}
-		
-		public function set zoom(__value:String):void
-		{
-			if (_containsInstance("mcZoom"))
-			{
-				if (_currentSelectedZoom != null)
-				{
-					_currentSelectedZoom.gotoAndStop("_up");
-					_currentSelectedZoom.buttonMode = true;
-				}
-				switch(__value)
-				{
-					case ZOOM_FIT:
-						_currentSelectedZoom = this["mcZoom"].mcZoomFit;
-						break;
-					case ZOOM_X05:
-						_currentSelectedZoom = this["mcZoom"].mcZoomX05;
-						break;
-					case NO_RESIZE:
-						_currentSelectedZoom = this["mcZoom"].mcZoomNoResize;
-						break;
-					case ZOOM_X2:
-						_currentSelectedZoom = this["mcZoom"].mcZoomX2;
-						break;
-					case ZOOM_X3:
-						_currentSelectedZoom = this["mcZoom"].mcZoomX3;
-						break;
-					case ZOOM_X4:
-						_currentSelectedZoom = this["mcZoom"].mcZoomX4;
-						break;
-					default:
-						break;
-				}
-				if (_currentSelectedZoom != null)
-				{
-					_currentSelectedZoom.gotoAndStop("_down");
-					_currentSelectedZoom.buttonMode = false;
-				}
-			}
 		}
 		
 		public function updateTime(__event:VideoPlayerEvent = null, __time:String = ""):void
@@ -429,9 +452,7 @@
 		
 		public function resize(__width:int =  -1):void
 		{
-			var w:int = __width == -1 ? _videoPlayer.playerWidth : __width
-			_background.width = _videoPlayer.playerWidth;
-			if (hasProgressBar()) _progressBar.resizeTo(w - _progressBarExtraSpace);
+			//...
 		}
 		
 		/************************************************************
@@ -685,5 +706,36 @@
 			}
 		}
 		
+		protected function set _canPlayPause(__value:Boolean):void
+		{
+			if (_containsInstance("mcPlayPause"))
+			{
+				this["mcPlayPause"].mcPlay.buttonMode = __value;
+				this["mcPlayPause"].mcPlay.useHandCursor = __value;
+				if (__value) this["mcPlayPause"].mcPlay.addEventListener(MouseEvent.MOUSE_DOWN, _onClickPlay);
+				else this["mcPlayPause"].mcPlay.removeEventListener(MouseEvent.MOUSE_DOWN, _onClickPlay);
+				
+				this["mcPlayPause"].mcPause.buttonMode = __value;
+				this["mcPlayPause"].mcPause.useHandCursor = __value;
+				if (__value) this["mcPlayPause"].mcPause.addEventListener(MouseEvent.MOUSE_DOWN, _onClickPause);
+				else this["mcPlayPause"].mcPause.removeEventListener(MouseEvent.MOUSE_DOWN, _onClickPause);
+			}
+			
+			if (_containsInstance("mcPlay"))
+			{
+				this["mcPlay"].buttonMode = __value;
+				this["mcPlay"].useHandCursor = __value;
+				if (__value) this["mcPlay"].addEventListener(MouseEvent.MOUSE_DOWN, _onClickPlay);
+				else this["mcPlay"].removeEventListener(MouseEvent.MOUSE_DOWN, _onClickPlay);
+			}
+			
+			if (_containsInstance("mcPause"))
+			{
+				this["mcPause"].buttonMode = __value;
+				this["mcPause"].useHandCursor = __value;
+				if (__value) this["mcPause"].addEventListener(MouseEvent.MOUSE_DOWN, _onClickPause);
+				else this["mcPause"].removeEventListener(MouseEvent.MOUSE_DOWN, _onClickPause);
+			}
+		}
 	}
 }
