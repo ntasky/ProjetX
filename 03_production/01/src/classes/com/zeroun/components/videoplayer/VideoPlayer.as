@@ -1,10 +1,4 @@
-﻿/* :TODO:
- * - stop current loading of a stream when a new video is loading
- * - remove all listener in reset function
- * 
- * ********************************/
-
-package com.zeroun.components.videoplayer
+﻿package com.zeroun.components.videoplayer
 {
 	// flashes classes
 	import flash.display.*;
@@ -43,10 +37,8 @@ package com.zeroun.components.videoplayer
 		protected const DEBUG_MODE					:Boolean = false;						// enables traces when set to true
 		
 		protected const DEFAULT_BUFFER				:Number = 2;							// default buffer time in seconds
-		protected const USE_CUSTOM_BUFFER			:Boolean = true;						// evaluates when playback can start regarding the bandwith
 		protected const VOLUME_TWEEN_DURATION		:Number = .2;
 		protected const CHECK_BUFFER_INTERVAL		:Number = 500;							// interval each time the buffer is checked.
-		protected const DETECT_BANDWITH_DELAY		:int = 1;								// delay in seconds before start checking bandwith
 		
 		
 		/************************************************************
@@ -59,12 +51,6 @@ package com.zeroun.components.videoplayer
 		public var mcBuffering						:MovieClip; 
 		public var mcBigPlay						:MovieClip; 
 		
-		protected var _videoPath					:*;
-		protected var _imagePath					:*;
-		protected var _playerWidth					:int = -1;
-		protected var _playerHeight					:int = -1;
-		protected var _playerSpaceforControls		:int = -1;								// space used by the controls
-		
 		protected var _autoStart					:Boolean = AUTO_START;
 		protected var _playerScaleMode				:String = PLAYER_DEFAULT_SCALE;
 		protected var _videoScaleMode				:String = VIDEO_DEFAULT_SCALE;
@@ -73,15 +59,10 @@ package com.zeroun.components.videoplayer
 		protected var _loopPlaylist					:Boolean = LOOP_PLAYLIST;
 		protected var _autoNext						:Boolean = AUTO_NEXT;
 		protected var _videoVolume					:Number = INIT_VOLUME;
-		
-		protected var _savedVideoVolume				:Number;
-		protected var _savedPlayerScaleMode			:String;
-		protected var _savedVideoIndex				:int = -1;
-		protected var _savedPlayerPosition			:Point;
-		protected var _savedStageAlign				:String;
-		protected var _savedStageScaleMode			:String;
+		protected var _mediaType					:String = MEDIA_TYPE_VIDEO;
 		
 		protected var _isPlaying					:Boolean = false;
+		protected var _videoStarted					:Boolean = false;
 		protected var _isPaused						:Boolean = false;
 		protected var _isAtEnd						:Boolean = false;
 		protected var _isMute						:Boolean = false;
@@ -93,16 +74,18 @@ package com.zeroun.components.videoplayer
 		protected var _isInitializable				:Boolean = false;
 		protected var _isInitialized				:Boolean = false;
 		protected var _imageisLoaded				:Boolean = false;
-		
 		protected var _startLoadingVideo			:Boolean = false;
 		protected var _metaDataReceived				:Boolean = false;
 		protected var _waitingNetConnection			:Boolean = false;
 		protected var _netConnectionIsOpen			:Boolean = false;
-		
-		protected var _startLoadedTime				:Number;
-		protected var _useCustomBuffer				:Boolean = USE_CUSTOM_BUFFER;
+		protected var _bufferIsFull					:Boolean = false;
 		protected var _bufferingcheckTimer			:Timer;
 		
+		protected var _videoPath					:*;
+		protected var _imagePath					:*;
+		protected var _playerWidth					:int = -1;
+		protected var _playerHeight					:int = -1;
+		protected var _playerSpaceforControls		:int = -1;								// space used by the controls
 		protected var _video						:Video;
 		protected var _netConnection				:NetConnection;
 		protected var _netStream					:NetStream;
@@ -113,15 +96,22 @@ package com.zeroun.components.videoplayer
 		protected var _controls						:Controls;
 		protected var _playList						:PlayList;
 		protected var _imageLoader					:Loader;
+		protected var _imageHolder					:Sprite;
 		protected var _playerNativeWidth			:int;
 		protected var _playerNativeHeight			:int;
 		protected var _cuePointsByName				:Array;
-		
+		protected var _savedVideoVolume				:Number;
+		protected var _savedPlayerScaleMode			:String;
+		protected var _savedVideoIndex				:int = -1;
+		protected var _savedPlayerPosition			:Point;
+		protected var _savedStageAlign				:String;
+		protected var _savedStageScaleMode			:String;
+		protected var _videoMetaData				:Object;
+		protected var _serverPath					:String;
 		protected var _netStreamClientForMetaData	:Object = new Object();		// object that receive native events from the netStream object
 		protected var _netStreamClient				:Object = new Object();		// empty object that receive native events from the netStream object
-		protected var _videoMetaData				:Object;
-		protected var _rtmpPath						:String;
-		protected var _mediaType					:String = MEDIA_TYPE_VIDEO;
+		
+		
 		
 		public var tweenVideoVolume					:Number = INIT_VOLUME;
 		
@@ -130,7 +120,7 @@ package com.zeroun.components.videoplayer
 		 * Constructor
 		 ************************************************************/
 		
-		public function VideoPlayer(__videoPath:String = undefined, __imagePath:String = undefined, __rtmpPath:String = "")
+		public function VideoPlayer(__videoPath:String = undefined, __imagePath:String = undefined, __serverPath:String = "")
 		{
 			if (_containsInstance("mcBuffering"))
 			{
@@ -186,7 +176,7 @@ package com.zeroun.components.videoplayer
 				
 				if (__videoPath != null)
 				{
-					initialize(__videoPath, __imagePath, __rtmpPath);
+					initialize(__videoPath, __imagePath, __serverPath);
 				}
 			}
 		}
@@ -225,6 +215,18 @@ package com.zeroun.components.videoplayer
 		public function get autoStart():Boolean { return _autoStart; }
 		public function set autoStart(__value:Boolean):void { _autoStart = __value; }
 		
+		[Inspectable(name = "7 - rtmp server")]
+		public function get serverPath():String { return _serverPath; }
+		public function set serverPath(__value:String):void { 
+			trace ("netConnectionIsOpen>>" + netConnectionIsOpen);
+			//if (netConnectionIsOpen && ((!streamingMode && __value != "") || (streamingMode && __value != _serverPath) || (streamingMode && __value == ""))) reset();
+			if (netConnectionIsOpen && ((!streamingMode && __value != "") || streamingMode)) 
+			{
+				reset();
+			}
+			_serverPath = __value;
+		}
+		
 		public function get screen():Sprite { return _screen; }
 		public function get video():Video { return _video; }
 		public function get controls():Controls { return _controls; }
@@ -261,14 +263,37 @@ package com.zeroun.components.videoplayer
 			}
 			else return _videoMetaData["height"];
 		}
-		public function get isPlaying():Boolean{ return _isPlaying; }
+		public function get isPlaying():Boolean { return _isPlaying; }
+		public function get isPaused():Boolean { return _isPaused; }
+		public function get isAtEnd():Boolean{ return _isAtEnd; }
 		public function get isLoaded():Boolean{ return _isLoaded; }
 		public function get isInitialized():Boolean{ return _isInitialized; }
 		public function get isInitializable():Boolean{ return _isInitializable; }
 		public function get cuePointsByName():Array{ return _cuePointsByName; }
 		public function get isMute():Boolean { return _isMute; }
 		public function get netConnectionIsOpen():Boolean { return _netConnectionIsOpen; }
-		public function get streamingMode():Boolean { return _rtmpPath != ""; }
+		public function get streamingMode():Boolean { return _serverPath != ""; }
+		
+		public function set image(__image:Bitmap):void
+		{
+			if (_screenClickable)
+			{
+				_screen.buttonMode = true;
+				_screen.useHandCursor = true;
+				_screen.addEventListener(MouseEvent.CLICK, _startPlayBack);
+			}
+			
+			_imageHolder = new Sprite();
+			_imageHolder.addChild(__image);
+			addChild(_imageHolder);
+			_resizeImage();
+			if (_controls != null) addChild(_controls);
+			
+			if (_autoStart)
+			{
+				_startPlayBack(null);
+			}
+		}
 		
 		public function get videoVolume():Number{ return _videoVolume; }
 		public function set videoVolume(__value:Number):void 
@@ -314,6 +339,7 @@ package com.zeroun.components.videoplayer
 			_loopPlaylist = __value;
 			if (_controls != null) _controls.loopPlaylist = __value;
 			if (__value) autoNext = true;
+			else _autoNext = false;
 		}
 		
 		public function get autoNext():Boolean { return _autoNext; }
@@ -325,9 +351,6 @@ package com.zeroun.components.videoplayer
 		
 		public function get debugMode():Boolean { return _debugMode; }
 		public function set debugMode(__value:Boolean):void { _debugMode = __value; }
-		
-		public function get useCustomBuffer():Boolean { return _useCustomBuffer; }
-		public function set useCustomBuffer(__value:Boolean):void { _useCustomBuffer = __value; }
 		
 		public function get fullScreen():Boolean{ return _isFullScreen; }
 		public function set fullScreen(__value:Boolean):void
@@ -380,11 +403,7 @@ package com.zeroun.components.videoplayer
 		}
 		
 		public function get defaultBuffer():int { return _netStream.bufferTime; }
-		public function set defaultBuffer(__value:int):void 
-		{
-			// :NOTES: if the bufferTimer is used with USE_CUSTOM_BUFFER it makes some video play twice the regular speed
-			if (!USE_CUSTOM_BUFFER || streamingMode) _netStream.bufferTime = __value;
-		}
+		public function set defaultBuffer(__value:int):void { _netStream.bufferTime = __value;}
 		
 		public function get videoScaleMode():String{ return _videoScaleMode; }
 		public function set videoScaleMode(__value:String):void 
@@ -796,6 +815,7 @@ package com.zeroun.components.videoplayer
 				{
 					case "videoPath":
 					case "imagePath":
+					case "serverPath":
 					case "playerWidth":
 					case "playerHeight":
 					case "autoStart":
@@ -808,7 +828,6 @@ package com.zeroun.components.videoplayer
 					case "autoNext":
 					case "videoVolume":
 					case "useBigPlayButton":
-					case "useCustomBuffer":
 					case "useControls":
 						this[option] = __value[option];
 						break;
@@ -816,7 +835,8 @@ package com.zeroun.components.videoplayer
 						"VideoPlayer set option ERROR : unknow " + option;
 				}
 			}
-			if (!_isInitialized) initialize(_videoPath, _imagePath);
+			_serverPath = (_serverPath == null) ? "" : _serverPath;
+			if (!_isInitialized) initialize(_videoPath, _imagePath, _serverPath);
 		}
 		
 		/************************************************************
@@ -830,7 +850,7 @@ package com.zeroun.components.videoplayer
 		}
 		 
 		// :NOTES: path can either be a String or a Array
-		public function initialize(__videoPaths:* = undefined, __imagePaths:* = undefined, __rtmpPath:String = ""):void
+		public function initialize(__videoPaths:* = undefined, __imagePaths:* = undefined, __serverPath:String = ""):void
 		{
 			if (_isInitializable)
 			{
@@ -860,12 +880,16 @@ package com.zeroun.components.videoplayer
 				
 				var videos:* = (__videoPaths == undefined) ? _videoPath : __videoPaths;
 				var images:* = (__imagePaths == undefined) ? _imagePath : __imagePaths;
-				_rtmpPath = __rtmpPath;
+				_serverPath = __serverPath;
 				
 				_bufferingcheckTimer = new Timer(CHECK_BUFFER_INTERVAL);
 				
 				_playList = new PlayList();
-				if (videos != null) setPlaylist(videos, images);
+				if (videos != null) 
+				{
+					if (!streamingMode) setPlaylist(videos, images);
+					else setStreamingPlaylist(_serverPath, videos, images);
+				}
 				
 				if (_controls != null) _controls.initialize(this);
 				resize();
@@ -880,25 +904,28 @@ package com.zeroun.components.videoplayer
 		public function setPlaylist(__videoPaths:*, __imagePaths:* = undefined):void 
 		{
 			if (debugMode) traceDebug ("setPlaylist>> __videoPaths:" +  __videoPaths + " __imagePaths:" + __imagePaths + "!");
-			if (_video != null) 
-			{
-				_video.visible = false;
-				_video.clear();
-			}
 			
-			_playList.removeAllItems();
+			serverPath = "";
+			_setPlaylist(__videoPaths, __imagePaths);
+		}
+		
+		public function setStreamingPlaylist(__serverPath:String,__videoPaths:*, __imagePaths:* = undefined):void 
+		{
+			if (debugMode) traceDebug ("setStreamingPlaylist>> __serverPath:" + __serverPath + "__videoPaths:" +  __videoPaths + " __imagePaths:" + __imagePaths + "!");
+			
+			serverPath = __serverPath;
+			_setPlaylist(__videoPaths, __imagePaths);
+		}
+		
+		// :NOTES: path can either be a String or a Array os Strings
+		private function _setPlaylist(__videoPaths:*, __imagePaths:* = undefined):void 
+		{
+			if (debugMode) traceDebug ("_setPlaylist>> streamingMode? " +  streamingMode);
 			
 			// reset all the playlist;
-			if (_isBuffering) _stopBuffering(false);
+			_playList.removeAllItems();
 			
-			if (_netConnectionIsOpen) _netStream.pause();
-			
-			_isPlaying = false;
-			_isPaused = false
-			_isLoaded = false;
-			_startLoadingVideo = false;
-			_metaDataReceived = false;
-			_isAtEnd = false;
+			_resetVideo();
 			
 			// single video
 			if (typeof(__videoPaths) == "string")
@@ -949,24 +976,33 @@ package com.zeroun.components.videoplayer
 			if (debugMode) traceDebug ("reset>>");
 			if (_netConnectionIsOpen)
 			{
-				pause();
+				_resetVideo();
 				if (_controls != null) _controls.reset();
-				if (_isBuffering) _stopBuffering(false);
-				if (_bufferingcheckTimer.hasEventListener(TimerEvent.TIMER))
-				{
-					_bufferingcheckTimer.removeEventListener(TimerEvent.TIMER, _onCheckBuffer);
-				}
-				if (!_isLoaded && !streamingMode)
-				{
-					this.removeEventListener(Event.ENTER_FRAME, _onCheckLoading);
-				}
-				this.removeEventListener(Event.ENTER_FRAME, _onVideoUpdated);
+				try { _bufferingcheckTimer.removeEventListener(TimerEvent.TIMER, _onCheckBuffer) } catch (e:Error) { };
+				try { this.removeEventListener(Event.ENTER_FRAME, _onCheckLoading) } catch (e:Error) { };
+				try { this.removeEventListener(Event.ENTER_FRAME, _onVideoUpdated) } catch (e:Error) { };
+				
+				_netStream.removeEventListener(NetStatusEvent.NET_STATUS, _netStatusHandler);
+				_netStream.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, _asyncErrorHandler);
+				_netStream.removeEventListener(IOErrorEvent.IO_ERROR, _ioErrorHandler);
+				_netStream.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, _securityErrorHandler);
 				_netStream.close();
+				_netStream = null;
+				
+				_netConnection.removeEventListener(NetStatusEvent.NET_STATUS, _netStatusHandler);
+				_netConnection.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, _securityErrorHandler);
 				_netConnection.close();
 				_netConnectionIsOpen = false;
 				_waitingNetConnection = false;
-				dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.PLAYER_RESET));
+				_netConnection = null;
 			}
+			
+			if (_imageHolder != null && contains(_imageHolder)) 
+			{
+				removeChild(_imageHolder);
+			}
+			
+			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.PLAYER_RESET));
 		}
 		
 		public function loadNextVideo():Boolean 
@@ -1018,70 +1054,55 @@ package com.zeroun.components.videoplayer
 		
 		public function play(__position:Number = -1, __play:Boolean = true):void 
 		{
-			if (debugMode) traceDebug ("play>> __position:" +  __position + ", __play:" + __play);
+			if (debugMode) traceDebug ("play>> __position:" +  __position + ", __play:" + __play + " _bufferIsFull:" + _bufferIsFull);
 			if (_netConnectionIsOpen) 
 			{
 				if (!_startLoadingVideo) loadVideoIndex();
 				else
 				{
-					// user decided to start playing before the end of the custom buffer
-					if (_isBuffering && _useCustomBuffer)
+					if (_isPaused)
 					{
-						_onVideoStart();
-					}
-					else if (!_isLoaded && !_isBuffering && (_netStream.bufferLength < _netStream.bufferTime) && !_useCustomBuffer && !streamingMode) 
-					{
-						_startBuffering();
-					}
-					else
-					{
-						if (_isBuffering) _stopBuffering(false);
-						
-						if (_isPaused)
+						if (_isAtEnd)
 						{
-							if (_isAtEnd)
-							{
-								_isAtEnd = false;
-								if (__position == -1) _netStream.seek(0);
-								else _netStream.seek(__position);
-							}
-							else if (__position != -1) 
-							{
-								_netStream.seek(__position);
-							}
-							_netStream.resume();
+							_isAtEnd = false;
+							if (__position == -1) _netStream.seek(0);
+							else _netStream.seek(__position);
 						}
-						else if (__play)
+						else if (__position != -1) 
 						{
-							if (__position == -1)
-							{
-								_netStream.play(_netStream.time);
-							}
-							else
-							{
-								_netStream.seek(__position);
-								_netStream.play(__position);
-							}
+							_netStream.seek(__position);
 						}
-						
-						_isPlaying = true;
-						_isPaused = false;
-						if (_controls != null) _controls.status = STATUS_PLAYING;
-						_hideBigPlayButton();
-						
-						dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_PLAYED));
+						_netStream.resume();
 					}
-					if (!_isLoaded && !streamingMode)
+					else if (__play)
 					{
-						_bufferingcheckTimer.addEventListener(TimerEvent.TIMER, _onCheckBuffer);
-						_onCheckBuffer();
-						_bufferingcheckTimer.start();
+						if (__position == -1)
+						{
+							_netStream.play(_netStream.time);
+						}
+						else
+						{
+							_netStream.seek(__position);
+							_netStream.play(__position);
+						}
 					}
+					
+					_isPlaying = true;
+					_isPaused = false;
+					if (_controls != null) _controls.status = STATUS_PLAYING;
+					_hideBigPlayButton();
+					
+					dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_PLAYED));
 				}
 			}
 			else if (_playList.items.length > 0) 
 			{
-				_startPlayBack(null);
+				if (!_netConnectionIsOpen && !_waitingNetConnection)
+				{
+					_openNetConnection();
+					_autoStart = true;
+					_setVolume(_videoVolume);
+				}
 			}
 			else _throwError(0);
 		}
@@ -1134,8 +1155,8 @@ package com.zeroun.components.videoplayer
 			if (debugMode) traceDebug ("mute>>");
 			_savedVideoVolume = _videoVolume;
 			videoVolume = 0;
-			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_MUTE));
 			_isMute = true;
+			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_MUTE));
 		}
 		
 		public function unmute(__value:Number = -1):void
@@ -1229,7 +1250,7 @@ package com.zeroun.components.videoplayer
 		
 		protected function _openNetConnection():void
 		{
-			if (_debugMode) traceDebug ("_openNetConnection>> " + _savedVideoIndex);
+			if (_debugMode) traceDebug ("_openNetConnection>> _savedVideoIndex:" + _savedVideoIndex);
 			_waitingNetConnection = true;
 			_netConnection = new NetConnection();
 			_netConnection.addEventListener(NetStatusEvent.NET_STATUS, _netStatusHandler);
@@ -1238,7 +1259,7 @@ package com.zeroun.components.videoplayer
 			if (streamingMode)
 			{
 				_netConnection.client = { onBWDone: function():void{} };
-				_netConnection.connect(_rtmpPath);
+				_netConnection.connect(_serverPath);
 			}
 			else
 			{
@@ -1248,29 +1269,24 @@ package com.zeroun.components.videoplayer
 		
 		protected function _initializeNetStream():void
 		{
-			if (_debugMode) traceDebug ("_initializeNetStream>> " + _savedVideoIndex);
+			if (_debugMode) traceDebug ("_initializeNetStream>> _savedVideoIndex:" + _savedVideoIndex + " _autoStart:" + _autoStart + " _netStream:" + _netStream);
 			_netStream = new NetStream(_netConnection);
 			_netStream.addEventListener(NetStatusEvent.NET_STATUS, _netStatusHandler);
 			_netStream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, _asyncErrorHandler);
 			_netStream.addEventListener(IOErrorEvent.IO_ERROR, _ioErrorHandler);
 			_netStream.addEventListener(SecurityErrorEvent.SECURITY_ERROR, _securityErrorHandler);
-			
 			defaultBuffer = DEFAULT_BUFFER;
 			
 			_netStreamClientForMetaData.onMetaData = _onMetaDataReceived;
-			
 			//_netStreamClient.onXMPData = _onXMPDataReceived;
 			_netStreamClient.onMetaData = undefined;
 			_netStreamClient.onCuePoint = _onCuePointReached;
 			_netStreamClient.onPlayStatus = _onPlayStatusModified;
-			
 			_video = new Video();
 			_video.attachNetStream(_netStream);
-			_video.visible = false;
 			_video.mask = _videoMask;
 			addChild(_video);
 			if (_controls != null) addChild(_controls);
-			
 			_waitingNetConnection = false;
 			_netConnectionIsOpen = true;
 			
@@ -1312,10 +1328,7 @@ package com.zeroun.components.videoplayer
 							_videoVolume = 0;
 							_setVolume(_videoVolume);
 						}
-						
-						
 					}
-					
 					if (streamingMode)
 					{
 						_startBuffering();
@@ -1359,15 +1372,15 @@ package com.zeroun.components.videoplayer
 						}
 					}
 					break;
+				case "NetStream.Pause.Notify":
+					_isPaused = true;
+					break;
+				case "NetStream.Unpause.Notify":
+					_isPaused = false;
+					break;
 				case "NetStream.Buffer.Empty":
-					if (streamingMode)
-					{
-						_startBuffering();
-					}
-					else
-					{
-						_onCheckBuffer();
-					}
+					_bufferIsFull = false;
+					_startBuffering();
 					break;
 				case "NetStream.Seek.InvalidTime":
 					// :NOTES: at the end if there is no key frame, the seeked timed might throw an exeption. the info.details contains the last right position. attention if can be an infinite loop ?
@@ -1379,29 +1392,25 @@ package com.zeroun.components.videoplayer
 						_stopBuffering();
 					}
 					break;
-				case "NetStream.Buffer.Full": // buffer full so the video starts
-					if (streamingMode)
+				case "NetStream.Buffer.Full":
+					if (_metaDataReceived)
 					{
-						// removes the image if it is still there
-						if (_imageLoader != null && contains(_imageLoader) && mediaType == MEDIA_TYPE_VIDEO) 
-						{
-							removeChild(_imageLoader);
-							dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_STARTED));
-						}
-						if (_isBuffering) 
-						{
-							_stopBuffering();
-						}
+						_onBufferFull();
 					}
-					else if (_isBuffering && !useCustomBuffer) 
+					else
 					{
-						_stopBuffering();
+						_netStream.pause();
+						_bufferIsFull = true;
 					}
 					break;
 				case "NetStream.Seek.Notify":
+					if (!_isPaused && !streamingMode)
+					{
+						_startBuffering();
+					}
 					break;
 				default:
-					if (_debugMode) traceDebug ("_netStatusHandler> " + __event.info.code);
+					if (_debugMode) traceDebug ("unhandled _netStatusHandler> " + __event.info.code);
 					break;
             }
         }
@@ -1420,6 +1429,19 @@ package com.zeroun.components.videoplayer
 		{
            _throwError(11, __event);
         }
+		
+		protected function _onBufferFull():void
+		{
+			if (_netStream.time == 0)
+			{
+				_videoStarted = true;
+				dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_STARTED));
+			}
+			if (_isBuffering) 
+			{
+				_stopBuffering();
+			}
+		}
 		
 		protected function _onMetaDataReceived(__object:Object):void
 		{
@@ -1458,6 +1480,11 @@ package com.zeroun.components.videoplayer
 				_netStream.client = _netStreamClient;
 				dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.ON_METADATA_RECEIVED));
 				resize();
+				
+				if (_bufferIsFull)
+				{
+					_onBufferFull();
+				}
 			}
 		}
 		
@@ -1696,8 +1723,6 @@ package com.zeroun.components.videoplayer
 			if (_isBuffering) _stopBuffering(false);
 			_isLoaded = false;
 			_startLoadingVideo = true;
-			_useCustomBuffer = (streamingMode) ? false : USE_CUSTOM_BUFFER ;
-			_startLoadedTime = getTimer();
 			if (_controls != null)
 			{
 				_controls.status = STATUS_LOADING;
@@ -1721,13 +1746,11 @@ package com.zeroun.components.videoplayer
 		protected function _showImage(__imagePath:String):void
 		{
 			if (_debugMode) traceDebug ("_showImage>> " + __imagePath);
-			_screen.buttonMode = true;
-			_screen.useHandCursor = true;
-			_screen.addEventListener(MouseEvent.CLICK, _startPlayBack);
 			
 			if (__imagePath != null && __imagePath.length > 0)
 			{
 				_imageisLoaded = false;
+				_imageHolder = new Sprite();
 				_imageLoader = new Loader();
 				_imageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, _onImageLoaded);
 				_imageLoader.load(new URLRequest(__imagePath));
@@ -1736,31 +1759,41 @@ package com.zeroun.components.videoplayer
 		
 		protected function _resizeImage():void
 		{
-			if (_debugMode) traceDebug ("_resizeImage>> " + _imageLoader);
+			if (_debugMode) traceDebug ("_resizeImage>> " + _imageHolder);
 			if (_imageisLoaded)
 			{
 				// fit on width
-				if ((_imageLoader.width / _imageLoader.height) > (_screen.width / _screen.height))
+				if ((_imageHolder.width / _imageHolder.height) > (_screen.width / _screen.height))
 				{
-					_imageLoader.height = _imageLoader.height * (_screen.width / _imageLoader.width);
-					_imageLoader.width = _screen.width;
+					_imageHolder.height = _imageHolder.height * (_screen.width / _imageHolder.width);
+					_imageHolder.width = _screen.width;
 				}
 				else
 				{
-					_imageLoader.width = _imageLoader.width * (_screen.height / _imageLoader.height);
-					_imageLoader.height = _screen.height;
+					_imageHolder.width = _imageHolder.width * (_screen.height / _imageHolder.height);
+					_imageHolder.height = _screen.height;
 				}
 				
-				_imageLoader.x = Math.round(_screen.width - _imageLoader.width) / 2;
-				_imageLoader.y = Math.round(_screen.height - _imageLoader.height) / 2;
+				_imageHolder.x = Math.round(_screen.width - _imageHolder.width) / 2;
+				_imageHolder.y = Math.round(_screen.height - _imageHolder.height) / 2;
 			}
 		}
 		
 		protected function _onImageLoaded(__event:Event):void
 		{
+			_imageLoader.contentLoaderInfo.removeEventListener(Event.COMPLETE, _onImageLoaded);
+			if (_screenClickable)
+			{
+				_screen.buttonMode = true;
+				_screen.useHandCursor = true;
+				_screen.addEventListener(MouseEvent.CLICK, _startPlayBack);
+			}
+			
 			_imageisLoaded = true;
-			_imageLoader.mouseEnabled = false;
-			addChild(_imageLoader);
+			_imageHolder.mouseEnabled = false;
+			_imageHolder.mouseChildren = false;
+			_imageHolder.addChild(_imageLoader);
+			addChild(_imageHolder);
 			_resizeImage();
 			if (_controls != null) addChild(_controls);
 			
@@ -1782,7 +1815,7 @@ package com.zeroun.components.videoplayer
 			{
 				this.removeEventListener(Event.ENTER_FRAME, _checkMetadataReceived);
 				this.addEventListener(Event.ENTER_FRAME, _onVideoUpdated);
-				if (_debugMode) traceDebug ("_checkMetadataReceived !! >>" + _loopPlaylist + ":" + _isPaused + "=>" + _metaDataReceived);
+				if (_debugMode) traceDebug ("_checkMetadataReceived !! >> _isPaused:" + _isPaused);
 				
 				if (!streamingMode)
 				{
@@ -1790,12 +1823,14 @@ package com.zeroun.components.videoplayer
 					_videoVolume = _savedVideoVolume;
 					_setVolume(_videoVolume);
 				}
-				if (mediaType == MEDIA_TYPE_VIDEO) 
+				if (mediaType == MEDIA_TYPE_AUDIO) 
 				{
-					if (_imageLoader != null && contains(_imageLoader)) removeChild(_imageLoader);
+					_video.visible = false;
+				}
+				else
+				{
 					_video.visible = true;
 				}
-				_video.clear();
 				if (!streamingMode)
 				{
 					if (_isPaused) pause(0);
@@ -1810,7 +1845,7 @@ package com.zeroun.components.videoplayer
 		
 		protected function _onCheckLoading(__event:Event):void
 		{
-			if (_debugMode) traceDebug ("_onCheckLoading>> _netStream.bytesLoaded:" + _netStream.bytesLoaded + " _netStream.bytesTotal:" + _netStream.bytesTotal);
+			//if (_debugMode) traceDebug ("_onCheckLoading>> _netStream.bytesLoaded:" + _netStream.bytesLoaded + " _netStream.bytesTotal:" + _netStream.bytesTotal);
 			var percentLoaded:Number;
 			if (_netStream.bytesTotal > 1000) percentLoaded = (_netStream.bytesLoaded / _netStream.bytesTotal);
 			else percentLoaded = 0;
@@ -1826,42 +1861,26 @@ package com.zeroun.components.videoplayer
 		
 		protected function _onCheckBuffer(__event:TimerEvent = null):void
 		{
-			// check the buffer with the custom buffer
-			if (_useCustomBuffer)
-			{
-				if (_debugMode) traceDebug ("_onCheckBuffer>>  _isBuffering:" + _isBuffering + " _isPlaying:" + _isPlaying + " _hasEnoughBufferToPlay:" + _hasEnoughBufferToPlay(true));
-				if (!_hasEnoughBufferToPlay() && !_isBuffering && _isPlaying)
-				{
-					_startBuffering();
-				}
-				else if (_hasEnoughBufferToPlay() && _isBuffering)
-				{
-					_onVideoStart();
-				}
-			}
-			// check the buffer with the default buffer
-			else if (_isBuffering)
-			{
-				if (_debugMode) traceDebug ("_onCheckBuffer>>  _isBuffering:" + _isBuffering + " _isPlaying:" + _isPlaying + " _netStream.bufferLength:" + _netStream.bufferLength + " _netStream.bufferTime:" + _netStream.bufferTime);
-				if (_netStream.bufferLength >= _netStream.bufferTime && _isBuffering) _stopBuffering();
-			}
+			if (_debugMode) traceDebug ("_onCheckBuffer>>  _isBuffering:" + _isBuffering + " _isPlaying:" + _isPlaying + " _netStream.bufferLength:" + _netStream.bufferLength + " _netStream.bufferTime:" + _netStream.bufferTime);
+			if (_netStream.bufferLength > _netStream.bufferTime) _stopBuffering();
+			_buffering.update(Math.min((_netStream.bufferLength * 100) / _netStream.bufferTime, 100));
 		}
 		
 		protected function _onVideoStart():void
 		{
-			if (_imageLoader != null && contains(_imageLoader) && mediaType == MEDIA_TYPE_VIDEO) 
-			{
-				removeChild(_imageLoader);
-			}
-			_useCustomBuffer = false;
+			if (_debugMode) traceDebug ("_onVideoStart>> _video.visible:" + _video.visible + " _isPlaying:" + _isPlaying + " _isPaused:" + _isPaused);
 			// when the movie starts with the custom buffer in theory it doesn't have to check it anymore. the default buffer is then used instead
 			defaultBuffer = DEFAULT_BUFFER;
 			_stopBuffering();
+			_videoStarted = true;
 			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_STARTED));
 		}
 		
 		protected function _startBuffering():void
 		{
+			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_START_BUFFERING));
+			if (_debugMode) traceDebug ("VIDEO_START_BUFFERING>>");
+			
 			_isBuffering = true;
 			if (_controls != null) _controls.status = STATUS_BUFFERING;
 			if (_screen.buttonMode) _screen.useHandCursor = false;
@@ -1876,17 +1895,26 @@ package com.zeroun.components.videoplayer
 				addChild(_buffering);
 			}
 			
-			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_START_BUFFERING));
-			if (_debugMode) traceDebug ("VIDEO_START_BUFFERING>> CustomBuffer:" + _useCustomBuffer);
-			if (_useCustomBuffer && !streamingMode) pause();
 			if (streamingMode)
 			{
 				_isPlaying = false;
+			}
+			
+			_bufferingcheckTimer.addEventListener(TimerEvent.TIMER, _onCheckBuffer);
+			_onCheckBuffer();
+			_bufferingcheckTimer.start();
+			
+			if (_imageHolder != null && contains(_imageHolder) && mediaType == MEDIA_TYPE_VIDEO) 
+			{
+				removeChild(_imageHolder);
 			}
 		}
 		
 		protected function _stopBuffering(__forcePlay:Boolean = true):void
 		{
+			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_END_BUFFERING));
+			if (_debugMode) traceDebug ("VIDEO_END_BUFFERING>> forcePlay:" + __forcePlay);
+			
 			_isBuffering = false;
 			if (_screen.buttonMode) _screen.useHandCursor = true;
 			if (_buffering != null)
@@ -1895,8 +1923,6 @@ package com.zeroun.components.videoplayer
 				_buffering.hide();
 			}
 			
-			dispatchEvent(new VideoPlayerEvent(VideoPlayerEvent.VIDEO_END_BUFFERING));
-			if (_debugMode) traceDebug ("VIDEO_END_BUFFERING>> forcePlay:" + __forcePlay);
 			if (__forcePlay && !streamingMode) play();
 			if (streamingMode)
 			{
@@ -1908,28 +1934,9 @@ package com.zeroun.components.videoplayer
 				}
 				else _isPlaying = true;
 			}
-		}
-		
-		protected function _hasEnoughBufferToPlay(__trace:Boolean = false):Boolean
-		{
-			var elapsedSeconds:Number = (getTimer() - _startLoadedTime) / 1000;
-			var estimatedSecondsLeft:Number = ((_netStream.bytesTotal - _netStream.bytesLoaded) * (elapsedSeconds / _netStream.bytesLoaded));
-			// already in cache
-			if (__trace) traceDebug ("_hasEnoughBufferToPlay>> elapsedSeconds:" + elapsedSeconds + " estimatedSecondsLeft:" + estimatedSecondsLeft + " _netStream.bytesLoaded:" + _netStream.bytesLoaded + " _netStream.bytesTotal:" + _netStream.bytesTotal);
-			if (estimatedSecondsLeft == 0 && _netStream.bytesLoaded > 1000) return true
-			// delay of seconds before bandwith is checked
-			else if (elapsedSeconds >= DETECT_BANDWITH_DELAY)
-			{
-				// has enough buffer to play the video without interruption
-				// :NOTES: a 10% of buffer is added to the estimatedSecondsLeft to be safe
-				if (_metaDataReceived)
-				{
-					if ((estimatedSecondsLeft * 1.1) <= (_videoMetaData["duration"] - _netStream.time))  return true;
-					else return false;
-				}
-				else return false;
-			}
-			else return false;
+			
+			_bufferingcheckTimer.reset();
+			try { _bufferingcheckTimer.removeEventListener(TimerEvent.TIMER, _onCheckBuffer) } catch (e:Error) { };
 		}
 		
 		protected function _onInitializable(__event:Event):void
@@ -1937,6 +1944,20 @@ package com.zeroun.components.videoplayer
 			removeEventListener("frameConstructed", _onInitializable);
 			_isInitializable = true;
 			dispatchEvent( new VideoPlayerEvent(VideoPlayerEvent.ON_INITIALIZABLE));
+		}
+		
+		protected function _resetVideo():void
+		{
+			if (_isBuffering) _stopBuffering(false);
+			if (_netConnectionIsOpen) _netStream.pause();
+			if (_video != null)	_video.clear();
+			_isPlaying = false;
+			_isPaused = false
+			_isLoaded = false;
+			_videoStarted = false;
+			_startLoadingVideo = false;
+			_metaDataReceived = false;
+			_isAtEnd = false;
 		}
 		
 		protected function _throwError(__index:int, __description:* = null)

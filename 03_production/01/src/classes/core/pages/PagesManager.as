@@ -14,6 +14,7 @@
 	import core.Main;
 	import core.LayersManager;
 	import core.events.PageEvent;
+	import core.pages.pages.*;
 	
 	
 	public class PagesManager extends Sprite
@@ -81,6 +82,25 @@
 			return _popupContainer;
 		}
 		
+		public function get currentPageId():String
+		{
+			return _currentPageId;
+		}
+		
+		public function get currentPopupId():String
+		{
+			return _currentPopupId;
+		}
+		
+		public function get currentPage():*
+		{
+			return _pagesById[_currentPageId];
+		}
+		
+		public function get currentPopup():*
+		{
+			return _pagesById[_currentPopupId];
+		}
 		
 		/************************************************************
 		 * Public methods

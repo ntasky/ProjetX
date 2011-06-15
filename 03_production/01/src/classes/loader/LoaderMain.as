@@ -91,6 +91,7 @@
 			try
 			{
 				result =  _flashVars[__var];
+				result = result == null ? "" : result;
 			}
 			catch(__e:Error)
 			{
@@ -155,6 +156,7 @@
 			
 			_loadingAnimation = new LoadingAnimation();
 			_loadingAnimation.addEventListener(Event.ADDED_TO_STAGE, _loadingAnimation.resizeLayout);
+			_loadingAnimation.addEventListener(LoaderConfig.LOADING_ANIMATION_COMPLETED, _onLoadingAnimationCompleted);
 			
 			_loadingAnimation.show();
 			addChild(_loadingAnimation);
@@ -167,7 +169,7 @@
 		{
 			_coreLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, _onCoreProgress);
 			_coreLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, _onCoreComplete);
-			_coreLoader.load(new URLRequest(LoaderConfig.CORE_SWF_URL));
+			_coreLoader.load(new URLRequest(getFlashVar(LoaderConfig.FLASH_VARS_BASE_PATH) + LoaderConfig.CORE_SWF_FILENAME));
 		}
 		
 		private function _onCoreProgress(event:ProgressEvent):void
@@ -302,7 +304,7 @@
 				
 				// we don't need to call a function or dispatch an event because the core swf is expected to (a) add a "event:complete" at the end of the array returned
 				// by getOtherFilesToLoad() and (b) add a listener for this event, in order to be notified that the loading has finished
-				_loadingAnimation.hide();
+			//	_loadingAnimation.hide();
 
 			}
 		}
@@ -346,6 +348,13 @@
 			
 			// move on to the next file
 			_loadNextAssetFile();
+		}
+		
+		private function _onLoadingAnimationCompleted(__event:Event):void
+		{
+			_loadingAnimation.hide();
+			_loadingAnimation.removeEventListener(LoaderConfig.LOADING_ANIMATION_COMPLETED, _onLoadingAnimationCompleted);
+			dispatchEvent(new Event(LoaderConfig.LOADING_ANIMATION_COMPLETED));
 		}
 		
 		private function _isSoundFile(__filename:String):Boolean

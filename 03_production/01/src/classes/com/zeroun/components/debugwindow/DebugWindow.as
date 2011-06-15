@@ -20,7 +20,7 @@
 		public static const ARGS_DELIMITER	:String = "|#|";
 		
 		private const DEBUG_WINDOW_LABEL	:String = "Zéro Un debugger";
-		private const DEBUG_ALLOWED_URLS	:Array = ["file:///"];
+		private const DEBUG_ALLOWED_URLS	:Array = ["file:///","http://127.0.0.1/", "http://dev.zero-un.com/", "http://client.zero-un.com/", "http://test.zero-un.lan/"];
 		private const DEBUG_TEXT_COLOR		:Number = 0xFF0000;
 		
 		

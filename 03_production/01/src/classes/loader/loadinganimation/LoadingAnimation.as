@@ -3,6 +3,10 @@ package loader.loadinganimation
 	import flash.display.MovieClip;
 	import flash.events.*;
 	
+	import com.greensock.TweenLite;
+	import com.greensock.easing.Linear;
+	import loader.LoaderConfig;
+	
 	
 	public class LoadingAnimation extends MovieClip implements ILoadingAnimation
 	{
@@ -11,16 +15,17 @@ package loader.loadinganimation
 		 * Constants
 		 ************************************************************/
 		
-		//...
+		// ...
 		
 		
 		/************************************************************
 		 * Variables
 		 ************************************************************/
 		
-		public var mcLabel						:MovieClip;
+		public var mcLabel				:MovieClip;
+		public var tweenLoadingPrct		:Number = 0;
 		
-		private var _isInitialized				:Boolean = false;
+		private var _isInitialized		:Boolean = false;
 		
 		
 		/************************************************************
@@ -43,7 +48,7 @@ package loader.loadinganimation
 			if (!_isInitialized)
 			{
 				visible = true;
-				_updateProcess(0);
+				_updateProcess();
 				_isInitialized = true;
 			}
 			if (hasEventListener(Event.ENTER_FRAME))
@@ -65,7 +70,8 @@ package loader.loadinganimation
 		
 		public function update(__value:Number):void
 		{
-			_updateProcess(__value);
+			// :NOTES: Tween duration must be > 0 because of initialization
+			TweenLite.to(this, 0.1, {tweenLoadingPrct:__value, onUpdate:_updateProcess, onComplete:_updateComplete, ease:Linear.easeNone } );
 		}
 		
 		public function resizeLayout(__event:Event = null):void
@@ -79,13 +85,18 @@ package loader.loadinganimation
 		 * Private methods
 		 ************************************************************/
 		
-		private function _updateProcess(__value:Number):void
+		private function _updateProcess():void
 		{
 			// update the progress bar
-			var n:uint = Math.round(__value);
+			var n:uint = Math.round(tweenLoadingPrct);
 			mcLabel.tfLabel.text = n + "%";
-			var f:uint = 1 + Math.round((totalFrames - 1) * __value / 100);
+			var f:uint = 1 + Math.round((totalFrames - 1) * tweenLoadingPrct / 100);
 			gotoAndStop(f);
+		}
+		
+		private function _updateComplete():void
+		{
+			if (tweenLoadingPrct == 100) dispatchEvent(new Event(LoaderConfig.LOADING_ANIMATION_COMPLETED));
 		}
 		
 		private function _revealProcess(__event:Event):void
@@ -101,7 +112,7 @@ package loader.loadinganimation
 		private function _hideProcess(__event:Event):void
 		{
 			alpha -= 0.1;
-
+			
 			if (alpha <= 0)
 			{
 				visible = false;

@@ -7,6 +7,7 @@ package core
 	import com.zeroun.components.menu.*;
 	
 	import loader.LoaderAccessor;
+	import loader.LoaderConfig;
 	import loader.ILoadable;
 	import core.pages.PagesManager;
 	import core.events.StageEvent;
@@ -92,17 +93,20 @@ package core
 			Content.autoDetermineLocale();
 			
 			// add XML files to load here...
-			return ["content.xml"];
+			return [LoaderAccessor.getFlashVar(LoaderConfig.FLASH_VARS_BASE_PATH) + "content.xml"];
 		}
 		
 		// this function is required by Loader.Main, do not remove or change its signature. put here all other assets to load
 		public function getOtherFilesToLoad():Array
 		{
-			Content.setContentXML(LoaderAccessor.getXML("content.xml"));
+			
 			
 			// add loading event listeners here...
 			LoaderAccessor.getLoader().addEventListener("intermediate", _onContentLoaded);
 			LoaderAccessor.getLoader().addEventListener("complete", _onContentLoaded);
+			LoaderAccessor.getLoader().addEventListener(LoaderConfig.LOADING_ANIMATION_COMPLETED, _onContentLoaded);
+			
+			Content.setContentXML(LoaderAccessor.getXML(LoaderAccessor.getFlashVar(LoaderConfig.FLASH_VARS_BASE_PATH) + "content.xml"));
 				
 			// add file paths (mp3, swf, jpg, png...) and loading events here...
 			return ["event:intermediate", "event:complete"];
@@ -129,6 +133,9 @@ package core
 					//...
 					break;
 				case "complete":
+					//...
+					break;
+				case LoaderConfig.LOADING_ANIMATION_COMPLETED:
 					_initialize();
 					break;
 			}

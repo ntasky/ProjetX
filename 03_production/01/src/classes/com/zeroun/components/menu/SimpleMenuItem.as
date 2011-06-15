@@ -22,7 +22,7 @@ package com.zeroun.components.menu
 		 * Variables
 		 ************************************************************/
 		
-		public var tfLabel							:TextField;
+		public var mcLabel							:MovieClip;
 		public var mcBackground						:MovieClip;
 		
 		protected var _id							:String;
@@ -47,7 +47,8 @@ package com.zeroun.components.menu
 			_label = __label;
 			_isSelected = false;
 			
-			tfLabel.mouseEnabled = false;
+			mcLabel.mouseEnabled = false;
+			mcLabel.tfLabel.mouseEnabled = false;
 			label = __label;
 			
 			mcBackground.stop();
@@ -111,9 +112,9 @@ package com.zeroun.components.menu
 		
 		public function set label(__value:String):void
 		{
-			tfLabel.autoSize = TextFieldAutoSize.LEFT;
 			_label = __value;
-			tfLabel.text = _label;
+			mcLabel.tfLabel.autoSize = TextFieldAutoSize.LEFT;
+			mcLabel.tfLabel.text = _label;
 		}
 		
 		public function get isSelected():Boolean

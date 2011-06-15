@@ -184,7 +184,7 @@ package com.zeroun.components.menu
 		public function set label(__value:String):void
 		{
 			mcMenuItem.label = __value;
-			mcMenuItem.tfLabel.text = __value;
+			mcMenuItem.mcLabel.tfLabel.text = __value;
 		}
 		
 		public function get isSelected():Boolean

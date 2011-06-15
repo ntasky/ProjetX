@@ -4,6 +4,7 @@ package com.zeroun.components.dropdown
 	import flash.text.*;
 	import flash.events.*;
 	import flash.geom.*;
+	import flash.system.Capabilities;
 	
 	import com.greensock.TweenLite;
 	import com.greensock.plugins.*;
@@ -19,9 +20,8 @@ package com.zeroun.components.dropdown
 		public static const STATUS_OVER		:String = "status_over";
 		public static const STATUS_SELECT	:String = "status_select";
 		
-		private const TEXT_OVER_COLOR		:Number = 0xFFFFFF;
-		private const TEXT_SELECT_COLOR		:Number = 0xFFFFFF;
-		private const TEXT_DEFAULT_COLOR	:Number = 0x999999;
+		private const OVER_TEXT_COLOR		:Number = 0xFD2416;
+		private const SELECTED_TEXT_COLOR	:Number = 0xFD2416;
 		
 		private static const TWEEN_DURATION	:Number = .2;
 		
@@ -30,15 +30,14 @@ package com.zeroun.components.dropdown
 		 * Variables
 		 ************************************************************/
 		
-		public var tfLabel					:TextField;
+		public var mcLabel					:MovieClip;
 		public var mcBackground				:MovieClip;
 		
 		private var _id						:String;
 		private var _index					:int;
 		private var _label					:String;
-		private var _textDefaultColor		:Number;
-		private var _textOverColor			:Number;
-		private var _textSelectColor		:Number;
+		private var _overTextColor			:Number;
+		private var _selectedTextColor		:Number;
 
 
 		/************************************************************
@@ -61,27 +60,28 @@ package com.zeroun.components.dropdown
 									__id:String,
 									__label:String,
 									__selected:Boolean = false,
-									__textOverColor:Number = TEXT_OVER_COLOR,
-									__textSelectColor:Number = TEXT_SELECT_COLOR,
-									__textDefaultColor:Number = TEXT_DEFAULT_COLOR)
+									__overTextColor:Number = OVER_TEXT_COLOR,
+									__selectedTextColor:Number = SELECTED_TEXT_COLOR)
 		{
 			_index = __index;
 			_id = __id;
 			_label = __label;
-			_textDefaultColor = __textDefaultColor;
-			_textOverColor = __textOverColor;
-			_textSelectColor = __textSelectColor;
+			_overTextColor = __overTextColor;
+			_selectedTextColor = __selectedTextColor;
 			
-			tfLabel.autoSize = TextFieldAutoSize.LEFT;
-			tfLabel.mouseEnabled = false;
-			tfLabel.text = _label;
+			mcLabel.tfLabel.autoSize = TextFieldAutoSize.LEFT;
+			mcLabel.mouseEnabled = false;
+			mcLabel.tfLabel.mouseEnabled = false;
+			mcLabel.tfLabel.text = _label;
 			
-			if (__selected) TweenLite.to(tfLabel, 0 , { tint : _textSelectColor } );
-			else TweenLite.to(tfLabel, 0 , { tint : _textDefaultColor } );
+			if (__selected) TweenLite.to(mcLabel, 0 , { tint : _selectedTextColor } );
+			else TweenLite.to(mcLabel, 0 , { tint : null } );
 						
 			mcBackground.addEventListener(MouseEvent.MOUSE_OVER, _onMouseOverItem);
 			mcBackground.addEventListener(MouseEvent.MOUSE_OUT, _onMouseOutItem);
 			mcBackground.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownItem);
+			// :KLUDGE: on MAC mcButton catches the mouseDown
+			if (Capabilities.manufacturer == "Adobe Macintosh") this.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownItem);
 		}
 		
 		public function get id():String
@@ -97,22 +97,23 @@ package com.zeroun.components.dropdown
 		public function set status(__status:String):void
 		{
 			var color:Number;
-			switch (__status)
+			if (__status == STATUS_DEFAULT)
 			{
-				case STATUS_OVER:
-					color = _textOverColor;
-					break;
-				case STATUS_DEFAULT:
-					color = _textDefaultColor;
-					break;
-				case STATUS_SELECT:
-					color = _textSelectColor;
-					break;
-				default:
-					color = _textDefaultColor;
-					break;
+				TweenLite.to(mcLabel, TWEEN_DURATION , { tint : null } );
 			}
-			TweenLite.to(tfLabel, TWEEN_DURATION , { tint : color } );
+			else
+			{
+				switch (__status)
+				{
+					case STATUS_OVER:
+						color = _overTextColor;
+						break;
+					case STATUS_SELECT:
+						color = _selectedTextColor;
+						break;
+				}
+				TweenLite.to(mcLabel, TWEEN_DURATION , { tint : color } );
+			}
 		}
 
 		/************************************************************

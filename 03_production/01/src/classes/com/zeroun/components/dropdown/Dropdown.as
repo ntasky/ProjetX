@@ -7,6 +7,7 @@ package com.zeroun.components.dropdown
 	import flash.utils.Timer;
 	import flash.geom.Rectangle;
 	import flash.utils.describeType;
+	import flash.system.Capabilities;
 	
 	import com.greensock.TweenLite;
 	import com.greensock.plugins.*;
@@ -24,9 +25,8 @@ package com.zeroun.components.dropdown
 		public static const DIRECTION_DOWN	:String = "down";
 		public static const DIRECTION_UP	:String = "up";
 		 
-		private const TEXT_OVER_COLOR		:Number = 0xFFFFFF;
-		private const TEXT_SELECT_COLOR		:Number = 0xFFFFFF;
-		private const TEXT_DEFAULT_COLOR	:Number = 0xB7B7B7;
+		private const OVER_TEXT_COLOR		:Number = 0xFD2416;
+		private const SELECTED_TEXT_COLOR	:Number = 0xFD2416;
 		private const TWEEN_DURATION		:Number = .2;
 		private const OPEN_DURATION			:Number = .3;
 		private const CLOSE_DURATION		:Number = .1;
@@ -37,7 +37,6 @@ package com.zeroun.components.dropdown
 		 * Variables
 		 ************************************************************/
 		
-		public var tfLabel					:TextField;
 		public var mcButton					:MovieClip;
 		public var mcMask					:MovieClip;
 		public var mcTop					:MovieClip;
@@ -65,6 +64,8 @@ package com.zeroun.components.dropdown
 		private var _scrollHolder			:Sprite = new Sprite();
 		private var _firstVisibleIndex		:int;
 		private var _timer					:Timer;
+		private var _overTextColor			:Number = OVER_TEXT_COLOR;
+		private var _selectedTextColor		:Number = SELECTED_TEXT_COLOR;
 	
 		
 		/************************************************************
@@ -76,6 +77,17 @@ package com.zeroun.components.dropdown
 			TweenPlugin.activate([TintPlugin]);
 			// call initialize to use the dropdown
 		};
+		
+		
+		public function set selectedTextColor(__color:Number):void
+		{
+			_overTextColor = __color;
+		}
+		
+		public function set defaultTextColor(__color:Number):void
+		{
+			_selectedTextColor = __color;
+		}
 		
 
 		/************************************************************
@@ -132,8 +144,9 @@ package com.zeroun.components.dropdown
 				_numVisibleItems = __numVisibleItems;
 			}
 			
-			_button.tfLabel.autoSize = TextFieldAutoSize.LEFT;
-			_button.tfLabel.mouseEnabled = false;
+			_button.mcLabel.mouseEnabled = false;
+			_button.mcLabel.tfLabel.autoSize = TextFieldAutoSize.LEFT;
+			_button.mcLabel.tfLabel.mouseEnabled = false;
 			
 			
 			selectable = _selectable;
@@ -153,6 +166,8 @@ package com.zeroun.components.dropdown
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownButton);
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_OVER, _onOverButton);
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_OUT, _onOutButton);
+			// :KLUDGE: on MAC mcButton catches the mouseDown
+			if (Capabilities.manufacturer == "Adobe Macintosh") _button.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownButton);
 			
 			_skinHolder.addChild(_skinTop);
 			_skinHolder.addChild(_skinBottom);
@@ -182,7 +197,7 @@ package com.zeroun.components.dropdown
 		public function set selectedIndex(__index:int):void
 		{
 			_selectedIndex = __index;
-			_button.tfLabel.text = getLabelFromIndex(_selectedIndex);
+			_button.mcLabel.tfLabel.text = getLabelFromIndex(_selectedIndex);
 		}
 		
 		public function get selectedID():String
@@ -193,7 +208,7 @@ package com.zeroun.components.dropdown
 		public function set selectedID(__ID:String):void
 		{
 			_selectedID = __ID;
-			_button.tfLabel.text = getLabelFromID(__ID);
+			_button.mcLabel.tfLabel.text = getLabelFromID(__ID);
 		}
 		
 		public function get size():int
@@ -220,13 +235,13 @@ package com.zeroun.components.dropdown
 			_selectable = __value;
 			if (_selectable)
 			{
-				_button.tfLabel.selectable = true;
-				_button.tfLabel.mouseEnabled = true;
+				_button.mcLabel.tfLabel.selectable = true;
+				_button.mcLabel.tfLabel.mouseEnabled = true;
 			}
 			else
 			{
-				_button.tfLabel.selectable = false;
-				_button.tfLabel.mouseEnabled = false;
+				_button.mcLabel.tfLabel.selectable = false;
+				_button.mcLabel.tfLabel.mouseEnabled = false;
 			}
 		}
 		
@@ -238,7 +253,7 @@ package com.zeroun.components.dropdown
 		public function set label(__label:String):void
 		{
 			_label = __label;
-			_button.tfLabel.text = _label;
+			_button.mcLabel.tfLabel.text = _label;
 		}
 		
 		public function get isOpen():Boolean
@@ -318,7 +333,7 @@ package com.zeroun.components.dropdown
 			dispatchEvent(new DropdownEvent(DropdownEvent.ON_OPEN));
 			if (_direction == DIRECTION_DOWN) TweenLite.to(mcMask, OPEN_DURATION, { height:_skinBottom.y - mcMask.y + _skinBottom.height } );
 			else TweenLite.to(mcMask, OPEN_DURATION, { height:Math.abs(mcMask.y - _skinBottom.y) + _skinBottom.height } );
-			TweenLite.to(_button.tfLabel, 0 , { tint : TEXT_OVER_COLOR } );
+			TweenLite.to(_button.mcLabel, 0 , { tint : _selectedTextColor } );
 		}
 		
 		public function close():void
@@ -327,7 +342,7 @@ package com.zeroun.components.dropdown
 			this.removeEventListener(MouseEvent.MOUSE_OVER, _onMouseOver);
 			_isOpen = false;
 			TweenLite.to(mcMask, CLOSE_DURATION, { height:1, onComplete:_onClosed } );
-			TweenLite.to(_button.tfLabel, TWEEN_DURATION , { tint : TEXT_DEFAULT_COLOR } );
+			TweenLite.to(_button.mcLabel, TWEEN_DURATION , { tint : null } );
 		}
 		
 		public function getIndexFromID(__ID:String):int
@@ -461,7 +476,7 @@ package com.zeroun.components.dropdown
 		{
 			if (!_isOpen)
 			{
-				TweenLite.to(_button.tfLabel, TWEEN_DURATION , { tint : TEXT_OVER_COLOR } );
+				TweenLite.to(_button.mcLabel, TWEEN_DURATION , { tint : _overTextColor } );
 			}
 		}
 		
@@ -469,7 +484,7 @@ package com.zeroun.components.dropdown
 		{
 			if (!_isOpen)
 			{
-				TweenLite.to(_button.tfLabel, TWEEN_DURATION , { tint : TEXT_DEFAULT_COLOR } );
+				TweenLite.to(_button.mcLabel, TWEEN_DURATION , { tint : null } );
 			}
 		}
 		
@@ -477,7 +492,7 @@ package com.zeroun.components.dropdown
 		{
 			var item:DropdownItem = (__event.target as DropdownItem)
 			_selectedIndex = item.index;
-			_button.tfLabel.text = getLabelFromIndex(_selectedIndex);
+			_button.mcLabel.tfLabel.text = getLabelFromIndex(_selectedIndex);
 			dispatchEvent(new DropdownEvent(DropdownEvent.ON_CLICK_ITEM, __event.index, __event.id));
 			_timer.stop();
 			close();

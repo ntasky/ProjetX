@@ -3,6 +3,7 @@ package com.zeroun.components.videoplayer
 	// flashes classes
 	import flash.display.*;
 	import flash.events.*;
+	import flash.text.TextField;
 	
 	// third-party classes
 	import com.greensock.TweenMax;
@@ -27,7 +28,7 @@ package com.zeroun.components.videoplayer
 		 * Variables
 		 ************************************************************/
 		
-		private var _rotation	:int = 0;
+		public var tfPrct	:TextField;
 		
 		
 		/************************************************************
@@ -35,7 +36,11 @@ package com.zeroun.components.videoplayer
 		 ************************************************************/
 		
 		public function Buffering()
-		{}
+		{
+			alpha = 0;
+			visible = false;
+			stop();
+		}
 		
 		
 		/************************************************************
@@ -51,26 +56,29 @@ package com.zeroun.components.videoplayer
 		
 		public function startBuffering():void
 		{
-			alpha = 1;
+			try { removeEventListener(Event.ENTER_FRAME, _update); } catch (e:Error) { };
 			addEventListener(Event.ENTER_FRAME, _update);
 		}
 		
 		public function stopBuffering():void
 		{
-			alpha = 0;
-			removeEventListener(Event.ENTER_FRAME, _update);
+			try { removeEventListener(Event.ENTER_FRAME, _update); } catch (e:Error) { };
 		}
 		
 		public function reveal():void
 		{
-			visible = true;
+			TweenMax.to(this, .5, { autoAlpha:1 } );
 		}
 		
 		public function hide():void
 		{
-			visible = false;
+			TweenMax.to(this, .5, { autoAlpha:0 } );
 		}
 		
+		public function update(__prct:int):void
+		{
+			tfPrct.text = __prct + "%";
+		}
 		
 		/************************************************************
 		 * Private methods
@@ -78,24 +86,7 @@ package com.zeroun.components.videoplayer
 		 
 		protected function _update(__event:Event):void
 		{
-			_rotation += 6;
-			
-			var follower:Shape = new Shape();
-			follower.graphics.beginFill(0x000000);
-			follower.graphics.drawRect(-1,-10, 2, 20);
-			follower.graphics.endFill();
-			follower.rotation = _rotation;
-			follower.alpha = 0;
-			addChild(follower);
-			
-			TweenMax.to(follower, TIME_TO_REVEAL_A_FOLLOWER, { overwrite:1, alpha:0.8, ease:Quint.easeOut, onComplete:function()
-			{
-				TweenMax.to(follower, TIME_TO_HIDE_A_FOLLOWER, { overwrite:1, alpha:0, ease:Quint.easeOut, onComplete:function() 
-				{
-					removeChild(follower);
-					follower = null;
-				}} );
-			}});
+			play();
 		}
 	}
 }
