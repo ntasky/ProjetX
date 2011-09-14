@@ -14,6 +14,19 @@ package com.zeroun.utils
 			return Math.round(Math.random() * (__max - __min) + __min);
 		}
 		
+		// get a random int beetween 2 forced values
+		public static function getRandomFixedLength(__length:int):int
+		{
+			var num:String = "";
+			for (var i:int = 0 ; i < __length ; i++)
+			{
+				if (i == 0) num += "" + getRandomIntBetween(1, 9);
+				else num += "" + getRandomIntBetween(0, 9);
+			}
+			
+			return int(num);
+		}
+		
 		// return the distance beetween 2 points
 		public static function getDistance(__x1:Number, __y1:Number, __x2:Number, __y2:Number):Number
 		{

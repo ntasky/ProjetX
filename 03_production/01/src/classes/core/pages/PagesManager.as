@@ -41,7 +41,7 @@
 		private var _currentPopupId					:String = "";
 		private var _hiddingPage					:Boolean		// indicates if a page is being hidden
 		private var _hiddingPopup					:Boolean		// indicates if a popup is being hidden
-		
+		private var _pageArgs						:*;
 		private var _isInitializable				:Boolean;		// true when SWFaddress is initalized (or when SWFAddress is not used)
 		
 		
@@ -149,8 +149,9 @@
 		}
 		
 		// go to a page
-		public function gotoPage(__pageId:String):void
+		public function gotoPage(__pageId:String, __args:* = null):void
 		{
+			_pageArgs = __args;
 			// add language to the address
 			var addressLocale:String = "";
 			var linkablePage:Boolean = Content.isPageLinkable(__pageId);
@@ -162,6 +163,7 @@
 					addressLocale = "/" + Content.locale;
 				}
 				SWFAddress.setValue(addressLocale + __pageId);
+				_pageArgs = __args;
 			}
 			else 
 			{
@@ -192,6 +194,11 @@
 					_goToAddress(_currentPageId);
 				}
 			}
+		}
+		
+		public function getPageById(__id:String):GenericPage
+		{
+			return _pagesById[__id];
 		}
 		
 		
@@ -391,34 +398,9 @@
 				}
 			}
 			
-			switch(pageId)
-			{
-				case null:
-				case "":
-				case "/":
-				case "/home/":
-					pageId = Content.getDefaultPageId();
-					if (_pagesById[pageId] == null )	_pagesById[pageId] = new SamplePage(pageId);
-					break;
-				case "/portfolio/1/":
-					pageId = pageId;
-					if (_pagesById[pageId] == null )	_pagesById[pageId] = new SamplePopup(pageId);
-					break;
-				case "/portfolio/":
-				case "/portfolio/2/":
-				case "/contact/":
-				case "/contact/join/":
-					pageId = pageId;
-					if (_pagesById[pageId] == null )	_pagesById[pageId] = new SamplePage(pageId);
-					break;
-				// page not found (404 error)
-				default:
-					pageId = ID_PAGE_NOT_FOUND;
-					if (_pagesById[pageId] == null )	_pagesById[pageId] = new SamplePage(pageId);
-					break;
-			}
+			pageId = _getPage(pageId);
 			
-			if (Config.DEBUG_MODE) traceDebug("PagesManager._goToAddress >> __address: " + __address + " pageId: " + pageId + " locale: " + locale);
+			if (Config.DEBUG_MODE) traceDebug("PagesManager._goToAddress >> __address: " + __address + " pageId: " + pageId + " locale: " + locale + " => args :" + _pageArgs);
 			
 			//  check the type of the page and open it
 			if (Content.getPageType(pageId) == PageType.PAGE)
@@ -455,6 +437,38 @@
 		 * SWFADDRESS methods
 		 ************************************************************/
 		
+		private function _getPage(__pageId:String):String
+		{
+			var pageId:String;
+			switch(__pageId)
+			{
+				case null:
+				case "":
+				case "/":
+				case "/home/":
+					pageId = Content.getDefaultPageId();
+					if (_pagesById[__pageId] == null )	_pagesById[__pageId] = new SamplePage(__pageId, _pageArgs);
+					break;
+				case "/portfolio/1/":
+					pageId = __pageId;
+					if (_pagesById[__pageId] == null )	_pagesById[__pageId] = new SamplePopup(__pageId, _pageArgs);
+					break;
+				case "/portfolio/":
+				case "/portfolio/2/":
+				case "/contact/":
+				case "/contact/join/":
+					pageId = __pageId;
+					if (_pagesById[__pageId] == null )	_pagesById[__pageId] = new SamplePage(__pageId, _pageArgs);
+					break;
+				// page not found (404 error)
+				default:
+					pageId = ID_PAGE_NOT_FOUND;
+					if (_pagesById[__pageId] == null )	_pagesById[__pageId] = new SamplePage(__pageId, _pageArgs);
+					break;
+			}
+			return pageId;
+		}
+		 
 		// this function is required by SWFAddress, do not remove or change its signature 
 		// called when the SWFAddress is initialized
 		private function _onInitSWFAddress(__event:SWFAddressEvent):void

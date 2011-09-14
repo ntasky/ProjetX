@@ -35,7 +35,6 @@ package com.zeroun.components.menu
 		{
 			_subItemsById		= new Array();
 			_selectedSubItemId	= null;
-			
 			super(__data, __itemClass, __language, __type, __itemSpacingX, __itemSpacingY);
 		}
 		

@@ -218,7 +218,7 @@
 		[Inspectable(name = "7 - rtmp server")]
 		public function get serverPath():String { return _serverPath; }
 		public function set serverPath(__value:String):void { 
-			trace ("netConnectionIsOpen>>" + netConnectionIsOpen);
+			traceDebug ("netConnectionIsOpen>>" + netConnectionIsOpen);
 			//if (netConnectionIsOpen && ((!streamingMode && __value != "") || (streamingMode && __value != _serverPath) || (streamingMode && __value == ""))) reset();
 			if (netConnectionIsOpen && ((!streamingMode && __value != "") || streamingMode)) 
 			{
@@ -1576,7 +1576,7 @@
 		{
 			if (_bigPlay != null && _useBigPlayButton)
 			{
-				_bigPlay.visible = true;
+				TweenLite.to(_bigPlay , .3 , { autoAlpha:1 } );
 				_bigPlay.x = Math.round(_screen.width / 2);
 				_bigPlay.y = Math.round(_screen.height / 2);
 				addChild(_bigPlay);
@@ -1587,7 +1587,7 @@
 		{
 			if (_bigPlay != null && _useBigPlayButton) 
 			{
-				_bigPlay.visible = false;
+				TweenLite.to(_bigPlay , .3 , { autoAlpha:0 } );
 			}
 		} 
 		

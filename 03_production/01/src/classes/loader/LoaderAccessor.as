@@ -71,7 +71,12 @@ package loader
 		{
 			return _instanceOfMain.root.loaderInfo.loader.parent as ILoaderMain;
 		}
-
+		
+		public static function hideLoadingAnimation(__quick:Boolean = false):void
+		{
+			return getLoader().hideLoadingAnimation(__quick);
+		}
+		
 		public static function getXML(__path:String):XML
 		{
 			return getLoader().getXML(__path);

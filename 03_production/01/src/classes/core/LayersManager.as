@@ -7,6 +7,7 @@ package core
 	
 	import core.events.StageEvent;
 	import core.pages.PagesManager;
+	import loader.LoaderConfig;
 	
 	public class LayersManager extends Sprite
 	{
@@ -25,11 +26,13 @@ package core
 		
 		public var mcOpaqueBackground			:MovieClip;	// for opaque background
 		 
-		private var _menuLayer					:Sprite;
 		private var _contentLayer				:Sprite;
 		private var _opaqueLayer				:Sprite;
 		private var _popupLayer					:Sprite;
+		private var _menuLayer					:Sprite;
+		private var _fullscreenLayer			:Sprite;
 		private var _cursorLayer				:Sprite;
+		
 		private var _popupIsOpen				:Boolean;
 		
 		
@@ -56,6 +59,9 @@ package core
 			_popupLayer = new Sprite();
 			addChild(_popupLayer);
 			
+			_fullscreenLayer = new Sprite();
+			addChild(_fullscreenLayer);
+			
 			_cursorLayer = new Sprite();
 			_cursorLayer.mouseEnabled = false;
 			_cursorLayer.mouseChildren= false;
@@ -70,6 +76,11 @@ package core
 		 * getter setter
 		 ************************************************************/
 		
+		public function get fullscreenLayer():Sprite
+		{
+			return _fullscreenLayer;
+		}
+		 
 		public function get menuLayer():Sprite
 		{
 			return _menuLayer;
@@ -172,6 +183,10 @@ package core
 			mcOpaqueBackground.width = availableWitdh;
 			mcOpaqueBackground.height = availableHeight;
 			
+			if (LoaderConfig.STAGE_SCALE_ALIGN == StageAlign.TOP)
+			{
+				mcOpaqueBackground.x = (Config.SITE_WIDTH -  mcOpaqueBackground.width) / 2;
+			}
 		}
 
 		private function _onMouseLeave(__event:Event):void

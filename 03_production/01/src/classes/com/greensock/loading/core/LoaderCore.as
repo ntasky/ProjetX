@@ -374,7 +374,7 @@ package com.greensock.loading.core {
 		protected function _errorHandler(event:Event):void {
 			var target:Object = (event is LoaderEvent && this.hasOwnProperty("getChildren")) ? event.target : this;
 			var text:String = (event as Object).text;
-			trace("Loading error on " + this.toString() + ": " + text);
+			traceDebug("Loading error on " + this.toString() + ": " + text);
 			if (event.type != LoaderEvent.ERROR && this.hasEventListener(event.type)) {
 				dispatchEvent(new LoaderEvent(event.type, target, text));
 			}

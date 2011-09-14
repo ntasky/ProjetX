@@ -38,9 +38,9 @@ package core.pages.pages
 		 * Constructor
 		 ************************************************************/
 		
-		public function SamplePopup(__id:String)
+		public function SamplePopup(__id:String, __args:* = null)
 		{
-			super(__id);
+			super(__id, __args);
 			this.buttonMode = true;
 			this.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDown);
 		}

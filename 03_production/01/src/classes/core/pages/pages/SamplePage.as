@@ -4,6 +4,7 @@ package core.pages.pages
 	import flash.display.*;
 	import flash.events.*;
 	import flash.net.*;
+	import flash.text.TextField;
 	
 	// third-party classes
 	import com.greensock.TweenMax;
@@ -12,6 +13,7 @@ package core.pages.pages
 	// project classes
 	import core.events.PageEvent;
 	import core.pages.GenericPage;
+	import core.TextStyles;
 	
 	
 	public class SamplePage extends GenericPage
@@ -39,16 +41,16 @@ package core.pages.pages
 		 * Constructor
 		 ************************************************************/
 		
-		public function SamplePage(__id:String)
+		public function SamplePage(__id:String, __args:* = null)
 		{
 			var child:Shape = new Shape();
             child.graphics.beginFill(Numbers.getRandomIntBetween(0,16777215));
             child.graphics.lineStyle(Numbers.getRandomIntBetween(0,10), Numbers.getRandomIntBetween(0,16777215));
-            child.graphics.drawRoundRect(50, 50, Numbers.getRandomIntBetween(20,300), Numbers.getRandomIntBetween(20,300), Numbers.getRandomIntBetween(0,10));
+            child.graphics.drawRoundRect(50, 50, Numbers.getRandomIntBetween(20,300), Numbers.getRandomIntBetween(20,20), Numbers.getRandomIntBetween(0,10));
             child.graphics.endFill();
             addChild(child);
 			
-			super(__id);
+			super(__id, __args);
 		}
 		
 		
@@ -64,7 +66,6 @@ package core.pages.pages
 		 ************************************************************/
 		
 		// ...
-
 
 		/************************************************************
 		 * Protected / private methods

@@ -10,6 +10,7 @@
 	
 	// project classes
 	import core.Main;
+	import core.Config;
 	import core.events.PageEvent;
 	import core.events.StageEvent;
 	
@@ -32,19 +33,21 @@
 		// ...
 		
 		// other variables
-		protected var _id		:String;
+		protected var _id			:String;
+		protected var _isActive		:Boolean;
 		
 		
 		/************************************************************
 		 * Constructor
 		 ************************************************************/
 		
-		public function GenericPage(__id:String)
+		public function GenericPage(__id:String, __args:* = null)
 		{
 			_id = __id;
 			
 			visible = false;
 			alpha = 0;
+			
 			Main.instance.addEventListener(StageEvent.RESIZE, _onResize);
 		}
 		
@@ -65,12 +68,14 @@
 		
 		public function reveal():void
 		{
-			_resize();
 			TweenMax.to(this, .5, { autoAlpha:1, onComplete:_onRevealed } );
+			_isActive = true;
+			Main.instance.resizeLayout();
 		}
 		
 		public function hide():void
 		{
+			_isActive = false;
 			TweenMax.to(this, .5, { autoAlpha:0, onComplete:_onHidden} );
 		}
 		
@@ -79,6 +84,10 @@
 			reveal();
 		}
 		
+		public function resize(__width:int = -1 , __height:int = -1):void
+		{
+			if (Config.DEBUG_MODE) traceDebug("resize> " + __width + ", " + __height);
+		}
 		
 		/************************************************************
 		 * Protected / private methods
@@ -86,12 +95,7 @@
 		
 		protected function _onResize(__event:StageEvent):void
 		{
-			_resize(__event.availableWitdh, __event.availableHeight);
-		}
-		
-		protected function _resize(__width:int = -1 , __height:int = -1):void
-		{
-			// add here logic ...
+			if (_isActive) resize(__event.availableWitdh, __event.availableHeight);
 		}
 		
 		protected function _onRevealed():void

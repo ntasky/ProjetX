@@ -11,6 +11,8 @@ package core
 	import loader.ILoadable;
 	import core.pages.PagesManager;
 	import core.events.StageEvent;
+	import flash.ui.ContextMenu;
+    import flash.ui.ContextMenuItem;
 	
 	
 	public class Main extends MovieClip implements ILoadable
@@ -48,6 +50,7 @@ package core
 			
 			// static accessor
 			_this = this;
+			
 		}
 		
 		
@@ -99,8 +102,6 @@ package core
 		// this function is required by Loader.Main, do not remove or change its signature. put here all other assets to load
 		public function getOtherFilesToLoad():Array
 		{
-			
-			
 			// add loading event listeners here...
 			LoaderAccessor.getLoader().addEventListener("intermediate", _onContentLoaded);
 			LoaderAccessor.getLoader().addEventListener("complete", _onContentLoaded);
@@ -116,7 +117,10 @@ package core
 		public function resizeLayout(__width:int = -1, __height:int = -1):void
 		{
 			// from this point an event is dispatched. so every instances has to listen to this event to be resized
-			dispatchEvent(new StageEvent(StageEvent.RESIZE, __width, __height));
+			var w:int = (__width == -1) ? stage.stageWidth : __width;
+			var h:int = (__height == -1) ? stage.stageHeight : __height;
+			
+			dispatchEvent(new StageEvent(StageEvent.RESIZE, w, h));
 		}
 		
 		
@@ -145,8 +149,16 @@ package core
 		private function _initialize() : void
 		{
 			// init debug window (used by traceDebug)
-			if (Config.DEBUG_MODE) new DebugWindow(this, Config.DEBUG_ALLOWED_URLS);
-			
+			//:NOTE: MovieClip(root).versionNumber is written by the jsfl.
+			var version:int = (MovieClip(root).hasOwnProperty("versionNumber")) ? MovieClip(root).versionNumber : 0;
+			if (Config.DEBUG_MODE) new DebugWindow(MovieClip(root), Config.DEBUG_ALLOWED_URLS, version);
+			else
+			{
+				var customContextMenu:ContextMenu = new ContextMenu();
+				var customContextMenuItem:ContextMenuItem = new ContextMenuItem("V." + version);
+				customContextMenu.customItems.push(customContextMenuItem);
+				MovieClip(root).contextMenu = customContextMenu;
+			}
 			// intialize all the fonts
 			TextStyles.initializeTextFormats();
 			
@@ -154,7 +166,7 @@ package core
 			_layersManager = new LayersManager();
 			
 			// intialize menu
-			_pagesMenu = new PagesMenu(XML(LoaderAccessor.getXML("content.xml").pages).page, PagesMenuItem, Content.locale);
+			_pagesMenu = new PagesMenu(XML(LoaderAccessor.getXML(LoaderAccessor.getFlashVar(LoaderConfig.FLASH_VARS_BASE_PATH) + "content.xml").pages).page, PagesMenuItem, Content.locale);
 			_pagesMenu.x = 10;
 			_pagesMenu.y = 10;
 			_pagesMenu.addEventListener(MenuEvent.ON_CLICK_ITEM, _pagesManager.onClickMenu);
@@ -173,6 +185,5 @@ package core
 			// reposition the elements
 			resizeLayout();
 		}
-		
 	}
 }

@@ -70,5 +70,13 @@ package com.zeroun.utils
 			var regExp:RegExp = /^[a-z][\w.-]+@\w[\w.-]+\.[\w.-]*[a-z][a-z]$/i;
 			return regExp.test(__str);
 		}
+		
+		public static function capitalizeWord(__word:String):String
+		{
+			var firstChar:String = __word.substr(0, 1); 
+			var restOfString:String = __word.substr(1, __word.length); 
+			return firstChar.toUpperCase()+restOfString.toLowerCase(); 
+		}
+		
 	}
 }

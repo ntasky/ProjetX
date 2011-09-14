@@ -48,7 +48,7 @@
 		 * Constructor
 		 ************************************************************/
 		
-		function DebugWindow(__root:*, __debugAllowedURLs:Array = null, __version:String = "")
+		function DebugWindow(__root:*, __debugAllowedURLs:Array = null, __version:int = -1)
 		{	
 			_this = this;
 			if (__debugAllowedURLs != null)
@@ -56,13 +56,16 @@
 				debugAllowedURLs = __debugAllowedURLs;
 			}
 			
+			var customContextMenu:ContextMenu = new ContextMenu();
+			var customContextMenuItem:ContextMenuItem;
+			var customContextMenuLabel:String;
+			
 			if (_isOnDebugServer(__root.root.loaderInfo.url))
 			{
 				_this = this;
 				_root = __root;
-				var customContextMenu:ContextMenu = new ContextMenu();
-				var label:String = __version == "" ? DEBUG_WINDOW_LABEL :  DEBUG_WINDOW_LABEL + " ("  + __version + ")";
-				var customContextMenuItem:ContextMenuItem = new ContextMenuItem(label);
+				customContextMenuLabel = __version == -1 ? DEBUG_WINDOW_LABEL :  DEBUG_WINDOW_LABEL + " ( V."  + __version + ")";
+				customContextMenuItem = new ContextMenuItem(customContextMenuLabel);
 				customContextMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, _open);
 				customContextMenu.customItems.push(customContextMenuItem);
 				_root.contextMenu = customContextMenu;
@@ -92,7 +95,12 @@
 				
 				traceDebug ("TraceWindow is initialized! ", DEBUG_TEXT_COLOR);
 			}
-			else return;
+			else
+			{
+				customContextMenuItem = new ContextMenuItem("V." + __version);
+				customContextMenu.customItems.push(customContextMenuItem);
+				__root.contextMenu = customContextMenu;
+			}
 		}
 		
 		

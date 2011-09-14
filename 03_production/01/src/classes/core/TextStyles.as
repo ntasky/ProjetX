@@ -14,6 +14,7 @@ package core
 		public static const ALIGN_LEFT				:String = "left";
 		public static const ALIGN_RIGHT				:String = "right";
 		public static const ALIGN_CENTER			:String = "center";
+		public static const ALIGN_NONE				:String = "none";
 		 
 		public static const COLOR_WHITE				:int = 0xFFFFFF;
 		public static const COLOR_BLACK				:int = 0x000000;
@@ -52,6 +53,7 @@ package core
 			font = new fontClassName();
 			arialRegular11.font = font.fontName;
 			arialRegular11.size = 11;
+			arialRegular11.color = 0x00FF00;
 			arialRegular11.letterSpacing = 0;
 			arialRegular11.leading = 4;
 			
@@ -61,13 +63,17 @@ package core
 			
 		}
 		
-		public static function formatTextField(__textfield:TextField, __text:String, __format:TextFormat, __autosize:String = ALIGN_LEFT, __mouseEnabled:Boolean = false, __underline:Boolean = false ):void
+		public static function formatTextField(__textfield:TextField, __text:String, __format:TextFormat = null, __autosize:String = ALIGN_LEFT, __mouseEnabled:Boolean = false, __underline:Boolean = false ):void
 		{
 			__textfield.autoSize = __autosize;
 			__textfield.embedFonts = true;
 			__textfield.htmlText = (__text == null) ? "" : __text.split("\r\n").join("\r");
-			__format.underline = __underline;
-			__textfield.setTextFormat(__format);
+			if (__format != null) 
+			{
+				__format.underline = __underline;
+				__textfield.setTextFormat(__format);
+			}
+			
 			__textfield.mouseEnabled = __mouseEnabled;
 		}
 		

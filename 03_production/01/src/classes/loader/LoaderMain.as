@@ -65,16 +65,11 @@
 		 * Public methods
 		 ************************************************************/
 		
-		public function showLoadingAnimation():void
-		{
-			_loadingAnimation.show();
-		}
-		
-		public function hideLoadingAnimation():void
+		public function hideLoadingAnimation(__quick:Boolean = false):void
 		{
 			_loadingAnimation.hide();
 		}
-		
+		 
 		public function getXML(__path:String):XML
 		{
 			return _xmlFiles[__path];
@@ -158,9 +153,9 @@
 			_loadingAnimation.addEventListener(Event.ADDED_TO_STAGE, _loadingAnimation.resizeLayout);
 			_loadingAnimation.addEventListener(LoaderConfig.LOADING_ANIMATION_COMPLETED, _onLoadingAnimationCompleted);
 			
-			_loadingAnimation.show();
-			addChild(_loadingAnimation);
+			_loadingAnimation.reveal();
 			
+			addChild(_loadingAnimation);
 			// start loading main swf file
 			_loadCore();
 		}

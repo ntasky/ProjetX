@@ -445,6 +445,8 @@
 					case TEXT_TYPE:
 						_target.addEventListener(Event.SCROLL,_onScrolled);
 						_target.addEventListener(Event.CHANGE, _onTextChanged);
+						// :NOTE: Lionel - 2011/07/14 - we need this if it's not a input textfield
+						addEventListener(MouseEvent.MOUSE_WHEEL, _onMouseWheeled);
 						break;
 					case OBJECT_TYPE:
 						_mask.mouseEnabled = false;

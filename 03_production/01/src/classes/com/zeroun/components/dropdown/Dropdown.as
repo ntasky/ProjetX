@@ -166,9 +166,7 @@ package com.zeroun.components.dropdown
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownButton);
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_OVER, _onOverButton);
 			_button.mcBackground.addEventListener(MouseEvent.MOUSE_OUT, _onOutButton);
-			// :KLUDGE: on MAC mcButton catches the mouseDown
-			if (Capabilities.manufacturer == "Adobe Macintosh") _button.addEventListener(MouseEvent.MOUSE_DOWN, _onMouseDownButton);
-			
+
 			_skinHolder.addChild(_skinTop);
 			_skinHolder.addChild(_skinBottom);
 			_maskedContent.addChild(_skinHolder);

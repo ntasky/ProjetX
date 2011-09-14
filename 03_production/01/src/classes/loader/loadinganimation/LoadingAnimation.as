@@ -43,12 +43,12 @@ package loader.loadinganimation
 		 * Public methods
 		 ************************************************************/
 		
-		public function show():void
+		public function reveal():void
 		{
 			if (!_isInitialized)
 			{
 				visible = true;
-				_updateProcess();
+				_onLoadingProgress();
 				_isInitialized = true;
 			}
 			if (hasEventListener(Event.ENTER_FRAME))
@@ -71,7 +71,12 @@ package loader.loadinganimation
 		public function update(__value:Number):void
 		{
 			// :NOTES: Tween duration must be > 0 because of initialization
-			TweenLite.to(this, 0.1, {tweenLoadingPrct:__value, onUpdate:_updateProcess, onComplete:_updateComplete, ease:Linear.easeNone } );
+			TweenLite.to(this, 1, { tweenLoadingPrct:__value, onUpdate:_onLoadingProgress, ease:Linear.easeNone } );
+			if (__value == 100) 
+			{
+				TweenLite.killDelayedCallsTo(_onLoadingComplete);
+				TweenLite.delayedCall(1, _onLoadingComplete);
+			}
 		}
 		
 		public function resizeLayout(__event:Event = null):void
@@ -85,7 +90,7 @@ package loader.loadinganimation
 		 * Private methods
 		 ************************************************************/
 		
-		private function _updateProcess():void
+		private function _onLoadingProgress():void
 		{
 			// update the progress bar
 			var n:uint = Math.round(tweenLoadingPrct);
@@ -94,11 +99,11 @@ package loader.loadinganimation
 			gotoAndStop(f);
 		}
 		
-		private function _updateComplete():void
+		private function _onLoadingComplete():void
 		{
-			if (tweenLoadingPrct == 100) dispatchEvent(new Event(LoaderConfig.LOADING_ANIMATION_COMPLETED));
+			dispatchEvent(new Event(LoaderConfig.LOADING_ANIMATION_COMPLETED));
 		}
-		
+
 		private function _revealProcess(__event:Event):void
 		{
 			alpha += 0.1;
