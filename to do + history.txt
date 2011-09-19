@@ -2,11 +2,6 @@
 TO DO LIST
 -------------------------
 
-- loader: throw error when getXML or getAsset return nothing (parameter p_path is not a key in _xmlFiles or _assetsFiles)
-- loader: throw error in _onIOError, so that the Flash Debug Player displays 'URL not found' when not in Flash IDE
-- menu contextuel
-- TextStyles: mettre les fontes dans la librairie avec un nom de classe et utiliser (new MyFont()).fontName au lieu de hardcoder les noms des fontes.
-
 
 -------------------------
 VERSION HISTORY
